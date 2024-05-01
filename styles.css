@@ -1,0 +1,49 @@
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: Montserrat, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+#handsontable-container.handsontable {
+  height: 100%;
+}
+
+.sponsors {
+  position: fixed;
+  top: 20px;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.sponsors a {
+  margin: 0 30px;
+}
+
+.sponsors div {
+  width: 100%;
+  text-align: center;
+}
+
+.place-your-ad-here {
+  display: inline-block;
+  border: 3px solid #126BCF;
+  border-radius: 5px;
+  color: #126BCF;
+  font-weight: bold;
+  padding: 10px 25px;
+  text-align: center;
+  line-height: 1.5;
+}
