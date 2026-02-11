@@ -55,10 +55,76 @@ body {
 .place-your-ad-here {
   display: inline-block;
   border: 3px solid #126BCF;
-  border-radius: 5px;
+  border-radius: 10px;
   color: #126BCF;
   font-weight: bold;
   padding: 10px 25px;
   text-align: center;
   line-height: 1.5;
+}
+
+/* Drop zone */
+#drop-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 360px;
+  padding: 48px 32px;
+  border: 2px dashed #c5d0de;
+  border-radius: 18px;
+  background: #f8fafc;
+  color: #64748b;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+#drop-zone.drag-over {
+  border-color: #126BCF;
+  background: #eff6ff;
+  color: #126BCF;
+}
+
+#drop-zone svg {
+  opacity: 0.5;
+}
+
+#drop-zone.drag-over svg {
+  opacity: 1;
+}
+
+.drop-title {
+  margin: 4px 0 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.drop-sub {
+  margin: 0;
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+#input-file {
+  display: none;
+}
+
+.browse-btn {
+  display: inline-block;
+  padding: 9px 24px;
+  background: #126BCF;
+  color: #fff;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+  user-select: none;
+}
+
+.browse-btn:hover {
+  background: #0f5ab8;
 }
