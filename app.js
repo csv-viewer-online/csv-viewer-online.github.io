@@ -56,13 +56,20 @@ window.addEventListener('dragleave', (e) => {
   if (!isFileDrag(e)) return
   dragCounter--
   if (dragCounter === 0) dropZone.classList.remove('drag-over')
+  if (dragCounter <= 0) {
+    dragCounter = 0
+    dropZone.classList.remove('drag-over')
+  }
 })
 
 window.addEventListener('dragover', (e) => {
-  if (!isFileDrag(e)) return
   e.preventDefault()
 })
 
+window.addEventListener('dragend', () => {
+  dragCounter = 0
+  dropZone.classList.remove('drag-over')
+})
 window.addEventListener('drop', (e) => {
   e.preventDefault()
   dragCounter = 0
