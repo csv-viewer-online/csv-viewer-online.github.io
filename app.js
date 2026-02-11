@@ -40,18 +40,26 @@ input.onchange = function () {
 // Drag-and-drop — listen on the whole window so any drop position works
 let dragCounter = 0
 
+function isFileDrag(e) {
+  if (!e || !e.dataTransfer || !e.dataTransfer.types) return false
+  return Array.prototype.indexOf.call(e.dataTransfer.types, 'Files') !== -1
+}
+
 window.addEventListener('dragenter', (e) => {
+  if (!isFileDrag(e)) return
   e.preventDefault()
   dragCounter++
   dropZone.classList.add('drag-over')
 })
 
-window.addEventListener('dragleave', () => {
+window.addEventListener('dragleave', (e) => {
+  if (!isFileDrag(e)) return
   dragCounter--
   if (dragCounter === 0) dropZone.classList.remove('drag-over')
 })
 
 window.addEventListener('dragover', (e) => {
+  if (!isFileDrag(e)) return
   e.preventDefault()
 })
 
