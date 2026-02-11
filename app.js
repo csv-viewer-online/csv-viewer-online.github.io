@@ -75,7 +75,7 @@ window.addEventListener('drop', (e) => {
   dragCounter = 0
   dropZone.classList.remove('drag-over')
   const file = e.dataTransfer.files[0]
-  if (file && file.name.endsWith('.csv')) {
+  if (file && file.name && file.name.toLowerCase().endsWith('.csv')) {
     loadFile(file)
   }
 })
