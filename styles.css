@@ -28,7 +28,7 @@ body {
   gap: 20px;
 }
 
-.sponsors a {
+.sponsors a:not(.beek-trade) {
   margin: 0 30px;
   display: inline-flex;
   flex-direction: column;
@@ -37,18 +37,17 @@ body {
   /* max-width: calc(300px + 2*20px + 2*3px); */
 }
 
-.sponsors a:hover {
+.sponsors a:not(.beek-trade):hover {
   text-decoration: underline;
 }
 
-.sponsors a span {
+.sponsors a:not(.beek-trade) span {
   font-size: 14px;
   margin-bottom: 18px;
   text-align: center;
 }
 
-.sponsors div {
-  width: 100%;
+.sponsors > div {
   text-align: center;
 }
 
