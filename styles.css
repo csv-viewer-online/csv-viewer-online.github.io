@@ -19,9 +19,38 @@ body {
   height: 100%;
 }
 
-.sponsors {
+.top-sponsors {
   position: fixed;
   top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
+  max-width: 100%;
+  margin: auto;
+  font-size: 1.25em;
+}
+
+.top-sponsors div {
+  flex: 1;
+  margin: 1em 0;
+}
+
+.top-sponsors a {
+  display: inline-block;
+  min-width: 6.875em;
+  text-decoration: none;
+  text-align: center;
+}
+
+.top-sponsors img {
+  width: 80px;
+  height: 80px;
+}
+
+
+.sponsors {
+  position: fixed;
+  bottom: 20px;
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
@@ -52,14 +81,16 @@ body {
 }
 
 .place-your-ad-here {
-  display: inline-block;
+  width: 120px;
+  margin: 0 1em;
+  font-size: 13px;
   border: 3px solid #126BCF;
   border-radius: 10px;
   color: #126BCF;
   font-weight: bold;
-  padding: 10px 25px;
+  padding: 5px;
   text-align: center;
-  line-height: 1.5;
+  line-height: 1;
 }
 
 /* Drop zone */
