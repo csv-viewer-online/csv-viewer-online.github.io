@@ -107,6 +107,7 @@ body {
   background: #f8fafc;
   color: #64748b;
   transition: border-color 0.2s, background 0.2s;
+  z-index: 1;
 }
 
 #drop-zone.drag-over {
