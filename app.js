@@ -17,8 +17,8 @@ function loadFile(file) {
     handsontableContainer.innerHTML = ''
     handsontableContainer.className = ''
     dropZone.remove()
-    document.querySelector('.sponsors').remove()
-    document.querySelector('.top-sponsors').remove()
+    document.querySelector('.sponsors')?.remove()
+    document.querySelector('.top-sponsors')?.remove()
 
     Handsontable(handsontableContainer, {
       data: data.data,

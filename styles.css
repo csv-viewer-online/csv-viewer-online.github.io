@@ -22,17 +22,19 @@ body {
 .top-sponsors {
   position: fixed;
   top: 20px;
+  /* single centered row, wraps only if it doesn't fit */
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-evenly;
-  max-width: 100%;
+  justify-content: center;
+  column-gap: 30px;
+  width: 100%;
   margin: auto;
   font-size: 1.25em;
 }
 
 .top-sponsors div {
-  flex: 1;
   margin: 1em 0;
+  text-align: center;
 }
 
 .top-sponsors a {
