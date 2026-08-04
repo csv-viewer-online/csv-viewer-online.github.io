@@ -1,142 +1,287 @@
-html, body {
-  height: 100%;
-  margin: 0;
+/* No webfonts: the product's promise is speed, so the type budget is spent
+   on nothing and the chrome uses the OS UI face. */
+:root {
+  --canvas: #FFFFFF;
+  --chrome: #F4F6FA;
+  --border: #D8DCE3;
+  --ink: #16181D;
+  --muted: #6B7280;
+  --action: #126BCF;
+  --action-soft: #EAF2FD;
+  --ui: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --data: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+  --rail: 184px;
 }
 
 * {
   box-sizing: border-box;
 }
 
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
 body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--rail);
+  grid-template-rows: 49px minmax(0, 1fr);
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--ui);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--action);
+  outline-offset: 1px;
+}
+
+/* Toolbar — present both before and after a file is open, so the page is
+   never left without an identity. */
+.toolbar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 12px 0 14px;
+  background: var(--chrome);
+  border-bottom: 1px solid var(--border);
+}
+
+.mark {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  font-size: 13.5px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.mark svg {
+  color: var(--action);
+}
+
+.divider {
+  width: 1px;
+  height: 22px;
+  background: var(--border);
+  flex: 0 0 auto;
+}
+
+.divider.after-file {
+  display: none;
+}
+
+.file-chip {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+.file-chip .name {
+  font-family: var(--data);
+  font-size: 12.5px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-chip .count {
+  flex: 0 0 auto;
+  padding: 2px 7px;
+  background: var(--canvas);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+body.loaded .file-chip,
+body.loaded .divider.after-file {
+  display: flex;
+}
+
+.hint {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 12.5px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.loaded .hint {
+  display: none;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.search {
+  display: none;
+  position: relative;
+  flex: 0 1 260px;
+  min-width: 0;
+}
+
+body.loaded .search {
+  display: block;
+}
+
+.search svg {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.search input {
+  width: 100%;
+  height: 30px;
+  padding: 0 30px 0 28px;
+  background: var(--canvas);
+  color: var(--ink);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  font-family: var(--ui);
+  font-size: 13px;
+}
+
+.search input::placeholder {
+  color: var(--muted);
+}
+
+.search kbd {
+  position: absolute;
+  right: 7px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 1px 5px;
+  background: var(--chrome);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  font-family: var(--data);
+  font-size: 10.5px;
+  color: var(--muted);
+}
+
+.search input:not(:placeholder-shown) + kbd,
+.search input:focus + kbd {
+  display: none;
+}
+
+.btn {
+  flex: 0 0 auto;
+  height: 30px;
+  padding: 0 14px;
+  background: var(--action);
+  color: #fff;
+  border: 0;
+  border-radius: 5px;
+  font-family: var(--ui);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: #0F5AB8;
+}
+
+/* Work area */
+.work {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.empty {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-family: Montserrat, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  gap: 4px;
+  padding: 24px;
+  background:
+    linear-gradient(var(--chrome) 1px, transparent 1px) 0 0 / 100% 33px,
+    linear-gradient(90deg, var(--chrome) 1px, transparent 1px) 0 0 / 132px 100%;
 }
 
-#handsontable-container.handsontable {
-  height: 100%;
-}
-
-.top-sponsors {
-  position: fixed;
-  top: 20px;
-  /* single centered row, wraps only if it doesn't fit */
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  column-gap: 30px;
-  width: 100%;
-  margin: auto;
-  font-size: 1.25em;
-}
-
-.top-sponsors div {
-  margin: 1em 0;
-  text-align: center;
-}
-
-.top-sponsors a {
-  display: inline-block;
-  min-width: 6.875em;
-  text-decoration: none;
-  text-align: center;
-}
-
-.top-sponsors img {
-  width: 80px;
-  height: 80px;
-}
-
-
-.sponsors {
-  position: fixed;
-  bottom: 20px;
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 20px;
-}
-
-.sponsors a {
-  margin: 0 30px;
-  display: inline-flex;
-  flex-direction: column;
-  border-radius: 5px;
-  text-decoration: none;
-  /* max-width: calc(300px + 2*20px + 2*3px); */
-}
-
-.sponsors a:hover {
-  text-decoration: underline;
-}
-
-.sponsors a span {
-  font-size: 14px;
-  margin-bottom: 18px;
-  text-align: center;
-}
-
-.sponsors > div {
-  text-align: center;
-}
-
-.place-your-ad-here {
-  width: 120px;
-  margin: 0 1em;
-  font-size: 13px;
-  border: 3px solid #126BCF;
-  border-radius: 10px;
-  color: #126BCF;
-  font-weight: bold;
-  padding: 5px;
-  text-align: center;
-  line-height: 1;
-}
-
-/* Drop zone */
 #drop-zone {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  width: 360px;
-  padding: 48px 32px;
-  border: 2px dashed #c5d0de;
-  border-radius: 18px;
-  background: #f8fafc;
-  color: #64748b;
-  transition: border-color 0.2s, background 0.2s;
-  z-index: 1;
+  gap: 10px;
+  width: 100%;
+  max-width: 400px;
+  padding: 42px 28px;
+  background: var(--canvas);
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  box-shadow: 0 18px 40px -30px rgba(22, 24, 29, 0.4);
+  transition: border-color 0.16s, background 0.16s;
 }
 
-#drop-zone.drag-over {
-  border-color: #126BCF;
-  background: #eff6ff;
-  color: #126BCF;
-}
-
-#drop-zone svg {
-  opacity: 0.5;
-}
-
-#drop-zone.drag-over svg {
-  opacity: 1;
+#drop-zone svg.file {
+  color: var(--muted);
+  opacity: 0.7;
+  transition: color 0.16s, opacity 0.16s, transform 0.16s;
 }
 
 .drop-title {
-  margin: 4px 0 0;
+  margin: 2px 0 0;
   font-size: 16px;
-  font-weight: 600;
-  color: #334155;
+  font-weight: 650;
 }
 
 .drop-sub {
   margin: 0;
-  font-size: 13px;
-  color: #94a3b8;
+  font-size: 12.5px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.browse-btn {
+  margin-top: 4px;
+  padding: 9px 20px;
+  background: var(--action);
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.browse-btn:hover {
+  background: #0F5AB8;
+}
+
+body.drag-over #drop-zone {
+  border-color: var(--action);
+  background: var(--action-soft);
+}
+
+body.drag-over #drop-zone svg.file {
+  color: var(--action);
+  opacity: 1;
+  transform: translateY(-3px);
 }
 
 #input-file {
@@ -152,20 +297,210 @@ body {
   white-space: nowrap;
 }
 
-.browse-btn {
-  display: inline-block;
-  padding: 9px 24px;
-  background: #126BCF;
-  color: #fff;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: background 0.15s;
-  user-select: none;
+#handsontable-container {
+  display: none;
+  height: 100%;
 }
 
-.browse-btn:hover {
-  background: #0f5ab8;
+body.loaded .empty {
+  display: none;
+}
+
+body.loaded #handsontable-container {
+  display: block;
+}
+
+/* The state class on <body> is deliberately different from the element's
+   class: sharing one would make `.x { display: none }` hide the page grid. */
+.search-empty {
+  display: none;
+  padding: 28px 20px;
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+
+body.no-match #handsontable-container {
+  display: none;
+}
+
+body.no-match .search-empty {
+  display: block;
+}
+
+/* Grid */
+.handsontable {
+  font-family: var(--data);
+  font-size: 12.5px;
+  color: var(--ink);
+}
+
+.handsontable th {
+  background: var(--chrome);
+  color: var(--muted);
+  font-family: var(--ui);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.handsontable td {
+  border-color: #E7EAF0;
+}
+
+.handsontable .wtBorder.current,
+.handsontable .wtBorder.area {
+  background-color: var(--action) !important;
+}
+
+.handsontable td.area {
+  background-color: var(--action-soft);
+  background-image: none;
+}
+
+/* Sponsor rail — one uniform frame per tile, so a loud logo can't set the
+   tone of the whole page. */
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  padding: 10px;
+  background: var(--chrome);
+  border-left: 1px solid var(--border);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+}
+
+.rail-h {
+  margin: 0 0 2px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #9AA3B2;
+}
+
+.tile {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex: 0 0 auto;
+  padding: 7px;
+  background: var(--canvas);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: none;
+  transition: border-color 0.14s, box-shadow 0.14s;
+}
+
+.tile:hover {
+  border-color: var(--action);
+  box-shadow: 0 0 0 3px var(--action-soft);
+}
+
+.tile img {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  object-fit: contain;
+}
+
+.tile.cta {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 10px 11px;
+  background: var(--action-soft);
+  border: 1px dashed var(--action);
+  color: var(--action);
+}
+
+.tile.cta b {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.tile.cta span {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.45;
+  color: #3D6EA8;
+}
+
+@media (max-width: 820px) {
+  :root {
+    --rail: 0px;
+  }
+
+  body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 49px minmax(0, 1fr) auto;
+  }
+
+  .toolbar {
+    flex-wrap: nowrap;
+    gap: 10px;
+    padding: 0 10px;
+  }
+
+  /* Keep the product name — it is the only identity on the page. */
+  .mark {
+    font-size: 13px;
+  }
+
+  .hint,
+  .divider {
+    display: none;
+  }
+
+  body.loaded .mark span,
+  body.loaded .divider.after-file {
+    display: none;
+  }
+
+  .search {
+    flex: 1 1 auto;
+  }
+
+  .btn span.long {
+    display: none;
+  }
+
+  .rail {
+    flex-direction: row;
+    align-items: center;
+    padding: 10px;
+    border-left: 0;
+    border-top: 1px solid var(--border);
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .rail-h {
+    display: none;
+  }
+
+  .tile {
+    white-space: nowrap;
+  }
+
+  .tile.cta {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .tile.cta span {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
 }
