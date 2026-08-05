@@ -9,6 +9,7 @@ const handsontableContainer = document.getElementById('handsontable-container')
 let hot = null
 let allRows = []
 let fields = []
+let encodingLabel = ''
 
 const fmt = (n) => n.toLocaleString('en-US')
 
@@ -43,19 +44,57 @@ function loadDeps() {
   return depsPromise
 }
 
-function readAsText(file) {
+function readAsArrayBuffer(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onload = () => resolve(reader.result)
     reader.onerror = () => reject(reader.error || new Error('could not read file'))
-    reader.readAsText(file)
+    reader.readAsArrayBuffer(file)
   })
 }
 
+// FileReader.readAsText assumes UTF-8, which mangles the Windows-1252 files
+// Excel produces by default. Sniff the encoding instead. TextDecoder strips a
+// leading BOM on its own, so nothing here has to trim one.
+function decodeFile(buf) {
+  const bytes = new Uint8Array(buf)
+  const decode = (encoding, label) => ({ text: new TextDecoder(encoding).decode(buf), encoding: label })
+
+  // A BOM is authoritative.
+  if (bytes[0] === 0xFF && bytes[1] === 0xFE) return decode('utf-16le', 'UTF-16LE')
+  if (bytes[0] === 0xFE && bytes[1] === 0xFF) return decode('utf-16be', 'UTF-16BE')
+  if (bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF) return decode('utf-8', 'UTF-8')
+
+  // BOM-less UTF-16 gives away its ASCII text as alternating NUL bytes: at odd
+  // offsets for little-endian, even for big-endian.
+  const probe = bytes.subarray(0, 512)
+  let nul = 0
+  let nulAtEven = 0
+  for (let i = 0; i < probe.length; i++) {
+    if (probe[i] !== 0) continue
+    nul++
+    if (i % 2 === 0) nulAtEven++
+  }
+  if (probe.length > 1 && nul / probe.length > 0.25) {
+    return nulAtEven * 2 > nul ? decode('utf-16be', 'UTF-16BE') : decode('utf-16le', 'UTF-16LE')
+  }
+
+  // Otherwise prefer UTF-8 and fall back only when the bytes are not valid
+  // UTF-8 at all, so genuine UTF-8 files are never second-guessed.
+  try {
+    return { text: new TextDecoder('utf-8', { fatal: true }).decode(buf), encoding: 'UTF-8' }
+  } catch (err) {
+    return decode('windows-1252', 'Windows-1252')
+  }
+}
+
 function setCount(shown) {
-  fileCount.textContent = shown === allRows.length
+  const base = shown === allRows.length
     ? fmt(allRows.length) + ' rows × ' + fields.length + ' cols'
     : fmt(shown) + ' of ' + fmt(allRows.length) + ' rows'
+  // Only worth naming when it is not the expected UTF-8, so a wrong guess is
+  // visible rather than silent.
+  fileCount.textContent = encodingLabel ? base + ' · ' + encodingLabel : base
 }
 
 function applySearch() {
@@ -92,11 +131,13 @@ async function loadFile(file) {
   dropStatus.textContent = 'Opening ' + file.name + '…'
 
   try {
-    const [text] = await Promise.all([readAsText(file), loadDeps()])
-    const parsed = Papa.parse(text, { header: true, skipEmptyLines: true })
+    const [buf] = await Promise.all([readAsArrayBuffer(file), loadDeps()])
+    const decoded = decodeFile(buf)
+    const parsed = Papa.parse(decoded.text, { header: true, skipEmptyLines: true })
 
     allRows = parsed.data
     fields = parsed.meta.fields || []
+    encodingLabel = decoded.encoding === 'UTF-8' ? '' : decoded.encoding
     searchInput.value = ''
 
     document.body.classList.remove('loading', 'no-match')
