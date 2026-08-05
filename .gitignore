@@ -4,3 +4,7 @@ playwright-report/
 blob-report/
 .DS_Store
 *.swp
+
+# Files the app itself downloads, if they land in the repo
+*-export.csv
+*-export.json

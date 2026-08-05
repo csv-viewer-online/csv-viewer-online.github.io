@@ -219,6 +219,37 @@ async function loadFile(file, extraWarning) {
   }
 }
 
+/* ── The "How it works" cue ────────────────────────────────────────────────
+   It used to be a plain #about link, which wrote the fragment into the URL.
+   Any later return to that URL — history, a bookmark, tab restore, an
+   address-bar suggestion — then opened on the prose instead of the tool. */
+
+const emptyPane = document.querySelector('.empty')
+const aboutSection = document.getElementById('about')
+
+document.querySelector('.scroll-cue').addEventListener('click', (e) => {
+  e.preventDefault()
+  aboutSection.scrollIntoView({
+    behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+    block: 'start'
+  })
+})
+
+// Drop a stale fragment so an already-bookmarked #about cannot keep hijacking
+// the first view. The drop zone is the point of the page; it always comes first.
+function clearStaleFragment() {
+  if (!location.hash) return
+  history.replaceState(null, '', location.pathname + location.search)
+  // WebKit applies the fragment scroll after this script runs, so reset on the
+  // next frame as well as now.
+  emptyPane.scrollTop = 0
+  requestAnimationFrame(() => { emptyPane.scrollTop = 0 })
+}
+
+clearStaleFragment()
+// A fragment can also arrive mid-session, e.g. via the back button
+window.addEventListener('hashchange', clearStaleFragment)
+
 /* ── Download ──────────────────────────────────────────────────────────────
    What downloads is what is on screen: rows are read by visual index, so the
    chosen sort order, the active search filter and any cell edits all carry
