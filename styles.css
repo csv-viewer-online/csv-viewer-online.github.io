@@ -218,6 +218,36 @@ body.loaded .search {
     linear-gradient(90deg, var(--chrome) 1px, transparent 1px) 0 0 / 132px 100%;
 }
 
+/* Shown while the grid is being fetched on first open, and if that fails. */
+.drop-status {
+  display: none;
+  margin: 16px 0 0;
+  max-width: 340px;
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: center;
+  color: var(--muted);
+}
+
+body.loading .drop-status,
+body.load-error .drop-status {
+  display: block;
+}
+
+body.load-error .drop-status {
+  color: #B42318;
+}
+
+body.loading #drop-zone {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+body.loading .scroll-cue,
+body.load-error .scroll-cue {
+  visibility: hidden;
+}
+
 .scroll-cue {
   margin-top: 30px;
   font-size: 12.5px;
