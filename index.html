@@ -27,9 +27,8 @@
       <span class="name" id="file-name">—</span>
       <span class="count" id="file-count">—</span>
     </span>
-    <span class="divider after-file"></span>
+    <span class="divider"></span>
 
-    <span class="hint">Open a CSV to sort, resize and search it. Your file stays on your device.</span>
     <span class="spacer"></span>
 
     <span class="search">
@@ -45,6 +44,11 @@
 
   <main class="work">
     <div class="empty">
+      <div class="intro">
+        <h1>CSV Viewer Online</h1>
+        <p class="tagline">Open, sort and search a CSV file. Nothing is uploaded — it is parsed on your own device.</p>
+      </div>
+
       <div id="drop-zone">
         <svg class="file" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -52,7 +56,7 @@
           <line x1="12" y1="18" x2="12" y2="12"/>
           <polyline points="9 15 12 12 15 15"/>
         </svg>
-        <h1 class="drop-title">Drop your CSV file here</h1>
+        <p class="drop-title">Drop your CSV file here</p>
         <p class="drop-sub">Parsed in your browser — the file is never uploaded.</p>
         <label class="browse-btn" for="input-file">Browse file</label>
         <input type="file" id="input-file" accept=".csv,text/csv">

@@ -64,15 +64,17 @@ body {
   color: var(--action);
 }
 
+/* Dividers only separate things that exist once a file is open. */
 .divider {
+  display: none;
   width: 1px;
   height: 22px;
   background: var(--border);
   flex: 0 0 auto;
 }
 
-.divider.after-file {
-  display: none;
+body.loaded .divider {
+  display: block;
 }
 
 .file-chip {
@@ -104,23 +106,8 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-body.loaded .file-chip,
-body.loaded .divider.after-file {
+body.loaded .file-chip {
   display: flex;
-}
-
-.hint {
-  flex: 1 1 auto;
-  min-width: 0;
-  font-size: 12.5px;
-  color: var(--muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-body.loaded .hint {
-  display: none;
 }
 
 .spacer {
@@ -220,6 +207,28 @@ body.loaded .search {
   background:
     linear-gradient(var(--chrome) 1px, transparent 1px) 0 0 / 100% 33px,
     linear-gradient(90deg, var(--chrome) 1px, transparent 1px) 0 0 / 132px 100%;
+}
+
+/* Empty-state heading. Lives inside .empty, so it is removed as soon as a
+   file is open and never competes with the grid. */
+.intro {
+  margin-bottom: 22px;
+  max-width: 460px;
+  text-align: center;
+}
+
+.intro h1 {
+  margin: 0 0 7px;
+  font-size: 27px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.tagline {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--muted);
 }
 
 #drop-zone {
@@ -452,18 +461,26 @@ body.no-match .search-empty {
     font-size: 13px;
   }
 
-  .hint,
-  .divider {
-    display: none;
-  }
-
+  /* No room for dividers or the wordmark text next to a filename. */
   body.loaded .mark span,
-  body.loaded .divider.after-file {
+  body.loaded .divider {
     display: none;
   }
 
   .search {
     flex: 1 1 auto;
+  }
+
+  .intro {
+    margin-bottom: 18px;
+  }
+
+  .intro h1 {
+    font-size: 21px;
+  }
+
+  .tagline {
+    font-size: 13px;
   }
 
   .btn span.long {
