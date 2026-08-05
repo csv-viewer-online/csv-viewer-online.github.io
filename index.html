@@ -6,8 +6,10 @@
   <title>CSV Viewer Online — open, sort and search a CSV in your browser</title>
   <meta name="description" content="Open a CSV file and sort, resize and search it in your browser. Nothing is uploaded — your file is parsed locally on your own device.">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@13/dist/handsontable.full.min.css">
-  <link rel="stylesheet" href="./styles.css?4">
+  <link rel="stylesheet" href="./styles.css?5">
+  <!-- The grid and parser are fetched on first file open (see app.js), so
+       warm the connection now rather than paying for it then. -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <script defer src="https://analytics.limonte.dev/script.js" data-website-id="980b9c4c-d922-4759-91af-dc5d6a129f57"></script>
 </head>
 
@@ -63,6 +65,7 @@
         <input type="file" id="input-file" accept=".csv,text/csv">
       </div>
 
+        <p class="drop-status" id="drop-status" role="status" aria-live="polite"></p>
         <a class="scroll-cue" href="#about">How it works</a>
       </div>
 
@@ -142,8 +145,6 @@
     </a>
   </aside>
 
-  <script src="https://cdn.jsdelivr.net/npm/handsontable@13/dist/handsontable.full.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5"></script>
-  <script src="./app.js?4"></script>
+  <script src="./app.js?5"></script>
 </body>
 </html>
