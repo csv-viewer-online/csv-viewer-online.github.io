@@ -13,17 +13,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version: 22
-          cache: npm
+          bun-version: latest
 
-      - run: npm ci
+      - run: bun install --frozen-lockfile
 
-      # Only chromium is needed; --with-deps installs the system libraries
-      - run: npx playwright install --with-deps chromium
+      # The browser download is the slowest step, so cache it against the
+      # resolved Playwright version rather than re-fetching ~100 MB per run.
+      - name: Resolve Playwright version
+        id: pw
+        run: |
+          echo "version=$(bun -e "console.log(require('@playwright/test/package.json').version)")" >> "$GITHUB_OUTPUT"
 
-      - run: npm test
+      - uses: actions/cache@v4
+        id: browser-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
+
+      # Only chromium is needed. --with-deps installs the system libraries,
+      # which a cache hit still needs, so it runs either way.
+      - run: bunx playwright install --with-deps chromium
+
+      - run: bun run test
 
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
