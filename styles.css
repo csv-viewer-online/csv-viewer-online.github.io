@@ -50,6 +50,10 @@ body {
 .toolbar {
   grid-row: 1;
   grid-column: 1 / -1;
+  /* Above .work, so the download menu is not covered by the grid's own
+     stacked overlays — they reach z-index ~200 and would swallow the clicks. */
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -199,6 +203,66 @@ body.loaded .search {
   background: #0F5AB8;
 }
 
+.btn.quiet {
+  background: var(--canvas);
+  color: var(--ink);
+  border: 1px solid var(--border);
+}
+
+.btn.quiet:hover {
+  background: var(--action-soft);
+  border-color: var(--action);
+  color: var(--action);
+}
+
+/* Download menu — only useful once a file is open */
+.menu {
+  display: none;
+  position: relative;
+  flex: 0 0 auto;
+}
+
+body.loaded .menu {
+  display: block;
+}
+
+.menu-pop {
+  position: absolute;
+  top: calc(100% + 5px);
+  right: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  min-width: 186px;
+  padding: 4px;
+  background: var(--canvas);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  box-shadow: 0 12px 28px -12px rgba(22, 24, 29, 0.28);
+}
+
+.menu-pop[hidden] {
+  display: none;
+}
+
+.menu-pop button {
+  padding: 8px 10px;
+  background: none;
+  border: 0;
+  border-radius: 5px;
+  font-family: var(--ui);
+  font-size: 13px;
+  text-align: left;
+  color: var(--ink);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.menu-pop button:hover {
+  background: var(--action-soft);
+  color: var(--action);
+}
+
 /* Parse and input feedback. Sits above the work area so it is visible in both
    the empty state and with a file open. */
 .notice {
@@ -224,6 +288,12 @@ body.loaded .search {
   background: #FEF2F2;
   border-bottom-color: #F3C6C6;
   color: #8C2B22;
+}
+
+.notice.is-ok {
+  background: var(--action-soft);
+  border-bottom-color: #BBD5F5;
+  color: #14508F;
 }
 
 #notice-text {
@@ -257,6 +327,9 @@ body.loaded .search {
   grid-row: 3;
   grid-column: 1;
   position: relative;
+  /* Contain the grid's internal z-indexes so they cannot compete with the
+     toolbar above it */
+  isolation: isolate;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
