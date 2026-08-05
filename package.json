@@ -8,9 +8,9 @@
     "test": "playwright test",
     "test:headed": "playwright test --headed",
     "test:ui": "playwright test --ui",
-    "serve": "node tests/serve.mjs"
+    "serve": "bun tests/serve.mjs"
   },
   "devDependencies": {
-    "@playwright/test": "^1.62.1"
+    "@playwright/test": "^1.62.0"
   }
 }

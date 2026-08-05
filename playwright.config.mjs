@@ -28,7 +28,7 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: `node tests/serve.mjs`,
+    command: `bun tests/serve.mjs`,
     env: { PORT: String(PORT) },
     url: `http://localhost:${PORT}/`,
     // Never adopt a server this suite did not start. Failing loudly on a busy
