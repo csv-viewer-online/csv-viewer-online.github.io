@@ -177,10 +177,18 @@ window.addEventListener('keydown', (e) => {
     e.preventDefault()
     searchInput.focus()
   }
-  if (e.key === 'Escape' && document.activeElement === searchInput) {
-    searchInput.value = ''
-    applySearch()
-  }
+})
+
+// Bound to the input rather than the window on purpose. Handsontable handles
+// Escape at document level and puts focus back on the grid, so a window
+// listener runs too late — document.activeElement is no longer the search box
+// and the field never clears. Stopping propagation also keeps Escape from
+// clearing the search and deselecting a cell in one press.
+searchInput.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return
+  e.stopPropagation()
+  searchInput.value = ''
+  applySearch()
 })
 
 // Drag-and-drop — listen on the whole window so any drop position works
