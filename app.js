@@ -13,10 +13,12 @@ let allRows = []
 let fields = []
 let encodingLabel = ''
 let delimiterLabel = ''
+let delimiter = ','
 
 function showNotice(message, tone) {
   noticeText.textContent = message
   notice.classList.toggle('is-error', tone === 'error')
+  notice.classList.toggle('is-ok', tone === 'ok')
   notice.hidden = false
 }
 
@@ -183,6 +185,7 @@ async function loadFile(file, extraWarning) {
   document.body.classList.add('loading')
   dropStatus.textContent = 'Opening ' + file.name + '…'
   hideNotice()
+  setMenu(false)
 
   try {
     const [buf] = await Promise.all([readAsArrayBuffer(file), loadDeps()])
@@ -192,6 +195,7 @@ async function loadFile(file, extraWarning) {
     allRows = parsed.data
     fields = parsed.meta.fields || []
     encodingLabel = decoded.encoding === 'UTF-8' ? '' : decoded.encoding
+    delimiter = parsed.meta.delimiter || ','
     delimiterLabel = DELIMITER_NAMES[parsed.meta.delimiter] ?? `“${parsed.meta.delimiter}” separated`
     searchInput.value = ''
 
@@ -214,6 +218,126 @@ async function loadFile(file, extraWarning) {
     dropStatus.textContent = 'Could not open that file. Check your connection and try again.'
   }
 }
+
+/* ── Download ──────────────────────────────────────────────────────────────
+   What downloads is what is on screen: rows are read by visual index, so the
+   chosen sort order, the active search filter and any cell edits all carry
+   through. The file on disk is never touched. */
+
+function visibleTable() {
+  if (!hot) return { rows: [] }
+  const rows = []
+  for (let row = 0; row < hot.countRows(); row++) rows.push(hot.getDataAtRow(row))
+  return { rows }
+}
+
+function csvText() {
+  // Keep the separator the file arrived with, so a TSV downloads as a TSV
+  return Papa.unparse({ fields, data: visibleTable().rows }, { delimiter })
+}
+
+function jsonText() {
+  const objects = visibleTable().rows.map((row) =>
+    Object.fromEntries(fields.map((field, i) => [field, row[i]]))
+  )
+  return JSON.stringify(objects, null, 2)
+}
+
+function save(text, extension, mime) {
+  const base = (fileName.textContent || 'export').replace(/\.[^.]+$/, '')
+  // A BOM makes Excel read the file as UTF-8 rather than guessing an 8-bit
+  // codepage — the same mistake this app used to make when reading.
+  const parts = extension === 'csv' ? ['\uFEFF', text] : [text]
+  const url = URL.createObjectURL(new Blob(parts, { type: mime }))
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `${base}-export.${extension}`
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 0)
+}
+
+const rowWord = (n) => (n === 1 ? '1 row' : `${fmt(n)} rows`)
+
+async function runExport(action) {
+  const count = visibleTable().rows.length
+  if (!count) {
+    showNotice('There is nothing to download — no rows are showing.', 'error')
+    return
+  }
+
+  if (action === 'csv') {
+    save(csvText(), 'csv', 'text/csv;charset=utf-8')
+    showNotice(`Downloaded ${rowWord(count)} as CSV.`, 'ok')
+  } else if (action === 'json') {
+    save(jsonText(), 'json', 'application/json')
+    showNotice(`Downloaded ${rowWord(count)} as JSON.`, 'ok')
+  } else if (action === 'copy') {
+    const copied = await copyText(csvText())
+    showNotice(
+      copied
+        ? `Copied ${rowWord(count)} to the clipboard.`
+        : 'Could not copy to the clipboard. Your browser blocked it — use Download instead.',
+      copied ? 'ok' : 'error'
+    )
+  }
+}
+
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text)
+    return true
+  } catch (err) {
+    // The async API needs a secure context and permission. Fall back to a
+    // selection-based copy, which works in more places.
+    const area = document.createElement('textarea')
+    area.value = text
+    area.setAttribute('readonly', '')
+    area.style.position = 'fixed'
+    area.style.top = '-1000px'
+    document.body.appendChild(area)
+    area.select()
+    let ok = false
+    try {
+      ok = document.execCommand('copy')
+    } catch (fallbackErr) {
+      ok = false
+    }
+    area.remove()
+    return ok
+  }
+}
+
+const downloadBtn = document.getElementById('download-btn')
+const downloadMenu = document.getElementById('download-menu')
+
+function setMenu(open) {
+  downloadMenu.hidden = !open
+  downloadBtn.setAttribute('aria-expanded', String(open))
+  if (open) downloadMenu.querySelector('button').focus()
+}
+
+downloadBtn.addEventListener('click', () => setMenu(downloadMenu.hidden))
+
+downloadMenu.addEventListener('click', (e) => {
+  const action = e.target.dataset?.export
+  if (!action) return
+  setMenu(false)
+  runExport(action)
+})
+
+// Close on Escape or on a click anywhere outside the menu
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !downloadMenu.hidden) {
+    setMenu(false)
+    downloadBtn.focus()
+  }
+})
+
+window.addEventListener('pointerdown', (e) => {
+  if (!downloadMenu.hidden && !e.target.closest('.menu')) setMenu(false)
+})
 
 // Click-to-browse. Clearing the value means picking the same file again
 // still fires change — otherwise retrying a failed open, or reopening a

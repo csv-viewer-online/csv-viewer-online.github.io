@@ -34,7 +34,7 @@
     "description": "View, sort and search CSV files in your browser. Files are parsed locally and never uploaded."
   }
   </script>
-  <link rel="stylesheet" href="./styles.css?9">
+  <link rel="stylesheet" href="./styles.css?10">
   <!-- The grid and parser are fetched on first file open (see app.js), so
        warm the connection now rather than paying for it then. -->
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
@@ -69,6 +69,17 @@
       <kbd>/</kbd>
     </span>
 
+    <span class="menu">
+      <button class="btn quiet" id="download-btn" type="button" aria-haspopup="true" aria-expanded="false">
+        Download
+      </button>
+      <span class="menu-pop" id="download-menu" role="menu" hidden>
+        <button type="button" role="menuitem" data-export="csv">Download as CSV</button>
+        <button type="button" role="menuitem" data-export="json">Download as JSON</button>
+        <button type="button" role="menuitem" data-export="copy">Copy to clipboard</button>
+      </span>
+    </span>
+
     <button class="btn" id="open-btn" type="button">Open<span class="long"> file</span></button>
   </header>
 
@@ -82,7 +93,7 @@
       <div class="hero">
       <div class="intro">
         <h1>CSV Viewer Online</h1>
-        <p class="tagline">Open, sort and search a CSV file. Nothing is uploaded — it is parsed on your own device.</p>
+        <p class="tagline">Open, sort, search and download a CSV file. Nothing is uploaded — it is parsed on your own device.</p>
       </div>
 
       <div id="drop-zone">
@@ -115,6 +126,7 @@
           <li><strong>Sorting.</strong> Click a column header to sort by that column.</li>
           <li><strong>Column widths.</strong> Drag the edge of a header to resize it.</li>
           <li><strong>Search.</strong> Filter to matching rows across every column; press <kbd>/</kbd> to jump to the search box.</li>
+          <li><strong>Download.</strong> Save the rows you are looking at as CSV or JSON, or copy them to the clipboard.</li>
         </ul>
 
         <h2>Questions</h2>
@@ -126,7 +138,7 @@
         <p>There is no fixed limit. Rows are only drawn as they scroll into view, so tens of thousands are comfortable. Very large files are bounded by your device's memory rather than by the page.</p>
 
         <h3>Can I edit the data and save it?</h3>
-        <p>You can type into a cell to check something, but there is no export. Nothing is written back to your file, and edits are gone when you reload. This is a viewer, not a spreadsheet editor.</p>
+        <p>You can type into cells, and <strong>Download</strong> saves what is on screen as a new CSV or JSON file — including your edits, the sort order you chose, and only the rows matching your search. Your original file is never touched; nothing is written back to it, and closing the tab discards anything you have not downloaded.</p>
 
         <h3>Does it work offline?</h3>
         <p>Not at the moment. The grid and the CSV parser are fetched from a CDN when the page loads, so the first load needs a connection. Reading your file, once the page is open, does not.</p>
@@ -178,6 +190,6 @@
     </a>
   </aside>
 
-  <script src="./app.js?9"></script>
+  <script src="./app.js?10"></script>
 </body>
 </html>
