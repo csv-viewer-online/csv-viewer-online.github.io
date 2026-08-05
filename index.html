@@ -34,7 +34,7 @@
     "description": "View, sort and search CSV files in your browser. Files are parsed locally and never uploaded."
   }
   </script>
-  <link rel="stylesheet" href="./styles.css?7">
+  <link rel="stylesheet" href="./styles.css?8">
   <!-- The grid and parser are fetched on first file open (see app.js), so
        warm the connection now rather than paying for it then. -->
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
@@ -72,6 +72,11 @@
     <button class="btn" id="open-btn" type="button">Open<span class="long"> file</span></button>
   </header>
 
+  <p class="notice" id="notice" role="status" aria-live="polite" hidden>
+    <span id="notice-text"></span>
+    <button class="notice-dismiss" id="notice-dismiss" type="button" aria-label="Dismiss">&times;</button>
+  </p>
+
   <main class="work">
     <div class="empty">
       <div class="hero">
@@ -88,9 +93,9 @@
           <polyline points="9 15 12 12 15 15"/>
         </svg>
         <p class="drop-title">Drop your CSV file here</p>
-        <p class="drop-sub">Parsed in your browser — the file is never uploaded.</p>
+        <p class="drop-sub">Also opens .tsv, .tab and .txt. Parsed in your browser — the file is never uploaded.</p>
         <label class="browse-btn" for="input-file">Browse file</label>
-        <input type="file" id="input-file" accept=".csv,text/csv">
+        <input type="file" id="input-file" accept=".csv,.tsv,.tab,.txt,text/csv,text/tab-separated-values,text/plain">
       </div>
 
         <p class="drop-status" id="drop-status" role="status" aria-live="polite"></p>
@@ -173,6 +178,6 @@
     </a>
   </aside>
 
-  <script src="./app.js?7"></script>
+  <script src="./app.js?8"></script>
 </body>
 </html>

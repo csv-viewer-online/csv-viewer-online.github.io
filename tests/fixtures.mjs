@@ -78,14 +78,28 @@ export const FIXTURES = {
     firstRow: ['José', 'São Paulo']
   },
 
-  // Not encoding cases — used by the smoke tests
+  // Not encoding cases — used by the smoke and input specs
   'semicolons.csv': { bytes: Buffer.from('name;city;qty\nJosé;Köln;5\nAcme;Berlin;12\n', 'utf8'), encoding: null },
   'tabs.tsv': { bytes: Buffer.from('name\tcity\tqty\nAcme\tBerlin\t5\nGlobex\tTokyo\t7\n', 'utf8'), encoding: null },
-  'plain.csv': { bytes: Buffer.from(toCsv([HEADER, ...ROWS]), 'utf8'), encoding: null }
+  'pipes.csv': { bytes: Buffer.from('name|city|qty\nAcme|Berlin|5\n', 'utf8'), encoding: null },
+  'plain.csv': { bytes: Buffer.from(toCsv([HEADER, ...ROWS]), 'utf8'), encoding: null },
+
+  // An unterminated quote swallows the rows that follow it
+  'malformed.csv': { bytes: Buffer.from('name,city\n"unterminated quote,Berlin\nok,Paris\n', 'utf8'), encoding: null },
+  'header-only.csv': { bytes: Buffer.from('name,city,qty\n', 'utf8'), encoding: null },
+  // Not delimited text at all — a PNG header. notCsv opts out of the
+  // "must decode to something CSV-shaped" assertion, since being unreadable
+  // is the whole point of this one.
+  'not-a-csv.png': {
+    bytes: Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13, 73, 72, 68, 82]),
+    encoding: null,
+    notCsv: true
+  }
 }
 
 /** Decoding a fixture's bytes must reproduce the text it claims to hold. */
-function assertBytes(name, bytes) {
+function assertBytes(name, bytes, fixture) {
+  if (fixture.notCsv) return
   const enc = {
     'windows-1252.csv': 'windows-1252',
     'latin1.csv': 'windows-1252',
@@ -120,8 +134,9 @@ export async function ensureFixtures() {
   if (dir) return dir
   const base = await mkdtemp(join(tmpdir(), 'csv-viewer-fixtures-'))
   const paths = {}
-  for (const [name, { bytes }] of Object.entries(FIXTURES)) {
-    assertBytes(name, bytes)
+  for (const [name, fixture] of Object.entries(FIXTURES)) {
+    const { bytes } = fixture
+    assertBytes(name, bytes, fixture)
     const file = join(base, name)
     await writeFile(file, bytes)
     // Re-read from disk, so a broken write cannot pass silently
