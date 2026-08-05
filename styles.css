@@ -26,7 +26,9 @@ html, body {
 body {
   display: grid;
   grid-template-columns: minmax(0, 1fr) var(--rail);
-  grid-template-rows: 49px minmax(0, 1fr);
+  /* Row 2 holds the parse notice and collapses to nothing while it is hidden,
+     so the grid keeps a definite height either way. */
+  grid-template-rows: 49px auto minmax(0, 1fr);
   background: var(--canvas);
   color: var(--ink);
   font-family: var(--ui);
@@ -96,7 +98,11 @@ body.loaded .divider {
 }
 
 .file-chip .count {
-  flex: 0 0 auto;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   padding: 2px 7px;
   background: var(--canvas);
   border: 1px solid var(--border);
@@ -186,6 +192,58 @@ body.loaded .search {
 
 .btn:hover {
   background: #0F5AB8;
+}
+
+/* Parse and input feedback. Sits above the work area so it is visible in both
+   the empty state and with a file open. */
+.notice {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  padding: 9px 12px 9px 14px;
+  background: #FFF8E6;
+  border-bottom: 1px solid #EBD9A6;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #6B4E10;
+}
+
+.notice[hidden] {
+  display: none;
+}
+
+.notice.is-error {
+  background: #FEF2F2;
+  border-bottom-color: #F3C6C6;
+  color: #8C2B22;
+}
+
+#notice-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.notice-dismiss {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 4px;
+  font-family: var(--ui);
+  font-size: 17px;
+  line-height: 1;
+  color: inherit;
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+.notice-dismiss:hover {
+  background: rgba(0, 0, 0, 0.06);
+  opacity: 1;
 }
 
 /* Work area */
@@ -547,7 +605,7 @@ body.no-match .search-empty {
 
   body {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: 49px minmax(0, 1fr) auto;
+    grid-template-rows: 49px auto minmax(0, 1fr) auto;
   }
 
   .toolbar {
