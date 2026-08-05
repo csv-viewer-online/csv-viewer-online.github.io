@@ -210,7 +210,10 @@ test.describe('head and static files', () => {
   test('heading outline and prose are present', async ({ page }) => {
     await page.goto('/')
     await expect(page.locator('h1')).toHaveCount(1)
-    await expect(page.locator('h1')).toHaveText('CSV Viewer Online')
+    await expect(page.locator('h1')).toHaveText('CSV Viewer & Editor Online')
+    // "CSV Viewer" must stay the leading phrase — it is the term the site ranks for
+    expect(await page.locator('h1').innerText()).toMatch(/^CSV Viewer\b/)
+    expect(await page.title()).toMatch(/^CSV Viewer\b/)
     expect(await page.locator('h2').count()).toBeGreaterThanOrEqual(3)
     const words = (await page.locator('.content').innerText()).trim().split(/\s+/).length
     expect(words, 'the indexable prose block must not shrink away').toBeGreaterThan(250)

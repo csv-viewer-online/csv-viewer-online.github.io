@@ -3,38 +3,38 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>CSV Viewer Online — open, sort and search a CSV in your browser</title>
-  <meta name="description" content="Open a CSV file and sort, resize and search it in your browser. Nothing is uploaded — your file is parsed locally on your own device.">
+  <title>CSV Viewer &amp; Editor Online — view and edit CSV files in your browser</title>
+  <meta name="description" content="Open a CSV file, edit it, sort and search it in your browser. Nothing is uploaded — your file is parsed locally on your own device.">
   <link rel="canonical" href="https://csv-viewer-online.github.io/">
   <!-- Search Console ownership proof. Removing this un-verifies the site. -->
   <meta name="google-site-verification" content="8aw1LwNMMXqelv3hKf9xP8h0Ok7Z02M8rvTzjny7oDw">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
 
   <meta property="og:type" content="website">
-  <meta property="og:site_name" content="CSV Viewer Online">
-  <meta property="og:title" content="CSV Viewer Online — view a CSV in your browser">
-  <meta property="og:description" content="Open, sort and search CSV files. Nothing is uploaded — your file is parsed on your own device.">
+  <meta property="og:site_name" content="CSV Viewer &amp; Editor Online">
+  <meta property="og:title" content="CSV Viewer &amp; Editor Online — view and edit a CSV in your browser">
+  <meta property="og:description" content="Open, edit, sort and search CSV files. Nothing is uploaded — your file is parsed on your own device.">
   <meta property="og:url" content="https://csv-viewer-online.github.io/">
   <meta property="og:image" content="https://csv-viewer-online.github.io/og.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="CSV Viewer Online, shown beside a table of CSV rows.">
+  <meta property="og:image:alt" content="CSV Viewer &amp; Editor Online, shown beside a table of CSV rows.">
   <meta name="twitter:card" content="summary_large_image">
 
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    "name": "CSV Viewer Online",
+    "name": "CSV Viewer & Editor Online",
     "url": "https://csv-viewer-online.github.io/",
     "applicationCategory": "BusinessApplication",
     "operatingSystem": "Any",
     "browserRequirements": "Requires JavaScript",
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-    "description": "View, sort and search CSV files in your browser. Files are parsed locally and never uploaded."
+    "description": "View, edit, sort and search CSV files in your browser. Files are parsed locally and never uploaded."
   }
   </script>
-  <link rel="stylesheet" href="./styles.css?10">
+  <link rel="stylesheet" href="./styles.css?11">
   <!-- The grid and parser are fetched on first file open (see app.js), so
        warm the connection now rather than paying for it then. -->
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
@@ -43,13 +43,13 @@
 
 <body>
   <header class="toolbar">
-    <span class="mark">
+    <a class="mark" href="/" aria-label="CSV Viewer and Editor Online — start over">
       <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
         <rect x="1.2" y="1.2" width="13.6" height="13.6" rx="2"/>
         <path d="M1.2 5.6h13.6M6 5.6V14.8M10.4 5.6V14.8"/>
       </svg>
-      <span>CSV Viewer</span>
-    </span>
+      <span>CSV Viewer &amp; Editor</span>
+    </a>
 
     <span class="divider"></span>
 
@@ -92,8 +92,8 @@
     <div class="empty">
       <div class="hero">
       <div class="intro">
-        <h1>CSV Viewer Online</h1>
-        <p class="tagline">Open, sort, search and download a CSV file. Nothing is uploaded — it is parsed on your own device.</p>
+        <h1>CSV Viewer &amp; Editor Online</h1>
+        <p class="tagline">Open, edit, sort and search a CSV file. Nothing is uploaded — it is parsed on your own device.</p>
       </div>
 
       <div id="drop-zone">
@@ -114,7 +114,7 @@
       </div>
 
       <article class="content" id="about">
-        <h2>Read a CSV without handing it to anyone</h2>
+        <h2>Read and edit a CSV without handing it to anyone</h2>
         <p>Most online CSV tools ask you to upload your file to a server before you can look at it. A copy of your spreadsheet — customer records, a bank export, whatever it happens to be — then lives on someone else's machine, under their retention policy rather than yours.</p>
         <p>This page does the work in your browser instead. When you pick a file it is read straight from disk by the tab you already have open, parsed in memory, and drawn on screen. There is no account, nothing to delete afterwards, and no upload request carrying your data. You can check that yourself: open your browser's network panel and watch it while you open a file.</p>
 
@@ -126,6 +126,7 @@
           <li><strong>Sorting.</strong> Click a column header to sort by that column.</li>
           <li><strong>Column widths.</strong> Drag the edge of a header to resize it.</li>
           <li><strong>Search.</strong> Filter to matching rows across every column; press <kbd>/</kbd> to jump to the search box.</li>
+          <li><strong>Editing.</strong> Type into any cell to correct or change a value before you download it.</li>
           <li><strong>Download.</strong> Save the rows you are looking at as CSV or JSON, or copy them to the clipboard.</li>
         </ul>
 
@@ -190,6 +191,6 @@
     </a>
   </aside>
 
-  <script src="./app.js?10"></script>
+  <script src="./app.js?11"></script>
 </body>
 </html>
