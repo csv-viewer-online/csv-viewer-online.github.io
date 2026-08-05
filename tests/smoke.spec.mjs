@@ -33,6 +33,54 @@ test.describe('empty state', () => {
       expect(errors).toEqual([])
     })
 
+    // A hidden notice used to leave .work and .rail auto-placed into its
+    // auto-sized row, so the app filled only its content height and left the
+    // bottom of the viewport blank. Nothing asserted full height before.
+    test(`${label}: the layout fills the viewport height`, async ({ page }) => {
+      await page.setViewportSize(viewport)
+      await page.goto('/')
+
+      // Layout-agnostic: the rail is beside .work on desktop and below it on
+      // mobile, so assert on whatever sits lowest rather than a fixed element.
+      const layout = await page.evaluate(() => {
+        const visible = [...document.body.children].filter((el) => getComputedStyle(el).display !== 'none')
+        const lowest = Math.max(...visible.map((el) => el.getBoundingClientRect().bottom))
+        const rows = getComputedStyle(document.body).gridTemplateRows.split(' ').map(parseFloat)
+        return {
+          lowest: Math.round(lowest),
+          unusedTrack: Math.round(rows.reduce((a, b) => a + b, 0) - lowest),
+          railBottom: Math.round(document.querySelector('.rail').getBoundingClientRect().bottom)
+        }
+      })
+      expect(layout.lowest, 'the page must reach the bottom of the viewport').toBe(viewport.height)
+      expect(layout.unusedTrack, 'no grid row may sit unused below the content').toBe(0)
+      expect(layout.railBottom, 'the sponsor rail must reach the bottom').toBe(viewport.height)
+    })
+
+    test(`${label}: still fills the viewport with a file open and a notice showing`, async ({ page }) => {
+      await page.setViewportSize(viewport)
+      await page.goto('/')
+      await page.setInputFiles('#input-file', paths['malformed.csv'])
+      await expect(page.locator('#notice')).toBeVisible()
+
+      const rail = await page.locator('.rail').boundingBox()
+      expect(Math.round(rail.y + rail.height), 'the rail must still reach the bottom').toBe(viewport.height)
+
+      // The grid keeps real height even with the notice taking a row
+      const grid = await page.locator('#handsontable-container').boundingBox()
+      expect(grid.height).toBeGreaterThan(100)
+
+      // and the notice must sit between the toolbar and the work area
+      const gap = await page.evaluate(() => {
+        const r = (s) => document.querySelector(s).getBoundingClientRect()
+        return {
+          afterToolbar: Math.round(r('#notice').top - r('.toolbar').bottom),
+          beforeWork: Math.round(r('.work').top - r('#notice').bottom)
+        }
+      })
+      expect(gap).toEqual({ afterToolbar: 0, beforeWork: 0 })
+    })
+
     test(`${label}: no horizontal overflow outside the sponsor rail`, async ({ page }) => {
       await page.setViewportSize(viewport)
       await page.goto('/')

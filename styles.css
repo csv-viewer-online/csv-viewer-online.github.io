@@ -43,7 +43,12 @@ body {
 
 /* Toolbar — present both before and after a file is open, so the page is
    never left without an identity. */
+/* Every row is placed explicitly. The notice is display:none while hidden,
+   which removes it as a grid item — with auto placement that let .work and
+   .rail fall into the notice's auto-sized row and shrink to their content
+   instead of filling the viewport. */
 .toolbar {
+  grid-row: 1;
   grid-column: 1 / -1;
   display: flex;
   align-items: center;
@@ -197,6 +202,7 @@ body.loaded .search {
 /* Parse and input feedback. Sits above the work area so it is visible in both
    the empty state and with a file open. */
 .notice {
+  grid-row: 2;
   grid-column: 1 / -1;
   display: flex;
   align-items: flex-start;
@@ -248,6 +254,8 @@ body.loaded .search {
 
 /* Work area */
 .work {
+  grid-row: 3;
+  grid-column: 1;
   position: relative;
   min-width: 0;
   min-height: 0;
@@ -527,6 +535,8 @@ body.no-match .search-empty {
 /* Sponsor rail — one uniform frame per tile, so a loud logo can't set the
    tone of the whole page. */
 .rail {
+  grid-row: 3;
+  grid-column: 2;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -655,6 +665,9 @@ body.no-match .search-empty {
   }
 
   .rail {
+    /* Single column here, so the rail moves below the work area */
+    grid-row: 4;
+    grid-column: 1;
     flex-direction: row;
     align-items: center;
     padding: 10px;
