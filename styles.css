@@ -6,6 +6,7 @@
   --border: #D8DCE3;
   --ink: #16181D;
   --muted: #6B7280;
+  --prose: #3F4653;
   --action: #126BCF;
   --action-soft: #EAF2FD;
   --ui: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -195,9 +196,17 @@ body.loaded .search {
   overflow: hidden;
 }
 
+/* Scroll container: the hero fills the first viewport, the prose sits
+   below it. The whole thing is removed once a file is open. */
 .empty {
   position: absolute;
   inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.hero {
+  min-height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -207,6 +216,67 @@ body.loaded .search {
   background:
     linear-gradient(var(--chrome) 1px, transparent 1px) 0 0 / 100% 33px,
     linear-gradient(90deg, var(--chrome) 1px, transparent 1px) 0 0 / 132px 100%;
+}
+
+.scroll-cue {
+  margin-top: 30px;
+  font-size: 12.5px;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.scroll-cue::after {
+  content: ' ↓';
+}
+
+.scroll-cue:hover {
+  color: var(--action);
+}
+
+/* Prose */
+.content {
+  max-width: 660px;
+  margin: 0 auto;
+  padding: 10px 24px 76px;
+}
+
+.content h2 {
+  margin: 36px 0 10px;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.content h3 {
+  margin: 22px 0 5px;
+  font-size: 14.5px;
+  font-weight: 650;
+}
+
+.content p,
+.content li {
+  margin: 0 0 10px;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--prose);
+}
+
+.content ul {
+  margin: 12px 0 0;
+  padding-left: 20px;
+}
+
+.content li {
+  margin-bottom: 7px;
+}
+
+.content kbd {
+  padding: 1px 5px;
+  background: var(--chrome);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  font-family: var(--data);
+  font-size: 11.5px;
 }
 
 /* Empty-state heading. Lives inside .empty, so it is removed as soon as a
@@ -481,6 +551,15 @@ body.no-match .search-empty {
 
   .tagline {
     font-size: 13px;
+  }
+
+  .content {
+    padding: 6px 18px 60px;
+  }
+
+  .content h2 {
+    font-size: 17px;
+    margin-top: 30px;
   }
 
   .btn span.long {

@@ -44,6 +44,7 @@
 
   <main class="work">
     <div class="empty">
+      <div class="hero">
       <div class="intro">
         <h1>CSV Viewer Online</h1>
         <p class="tagline">Open, sort and search a CSV file. Nothing is uploaded — it is parsed on your own device.</p>
@@ -61,6 +62,42 @@
         <label class="browse-btn" for="input-file">Browse file</label>
         <input type="file" id="input-file" accept=".csv,text/csv">
       </div>
+
+        <a class="scroll-cue" href="#about">How it works</a>
+      </div>
+
+      <article class="content" id="about">
+        <h2>Read a CSV without handing it to anyone</h2>
+        <p>Most online CSV tools ask you to upload your file to a server before you can look at it. A copy of your spreadsheet — customer records, a bank export, whatever it happens to be — then lives on someone else's machine, under their retention policy rather than yours.</p>
+        <p>This page does the work in your browser instead. When you pick a file it is read straight from disk by the tab you already have open, parsed in memory, and drawn on screen. There is no account, nothing to delete afterwards, and no upload request carrying your data. You can check that yourself: open your browser's network panel and watch it while you open a file.</p>
+
+        <h2>What it handles</h2>
+        <ul>
+          <li><strong>Commas, semicolons, tabs and pipes.</strong> The separator is detected automatically, so European semicolon exports and tab-separated files open without changing a setting.</li>
+          <li><strong>Quoted fields.</strong> Values wrapped in quotes can contain commas, escaped quotes and line breaks.</li>
+          <li><strong>UTF-8 text.</strong> Accented characters and non-Latin scripts render as written.</li>
+          <li><strong>Sorting.</strong> Click a column header to sort by that column.</li>
+          <li><strong>Column widths.</strong> Drag the edge of a header to resize it.</li>
+          <li><strong>Search.</strong> Filter to matching rows across every column; press <kbd>/</kbd> to jump to the search box.</li>
+        </ul>
+
+        <h2>Questions</h2>
+
+        <h3>Is my file uploaded anywhere?</h3>
+        <p>No. It is read and parsed locally by JavaScript running in this tab, and never leaves your device.</p>
+
+        <h3>How many rows can it open?</h3>
+        <p>There is no fixed limit. Rows are only drawn as they scroll into view, so tens of thousands are comfortable. Very large files are bounded by your device's memory rather than by the page.</p>
+
+        <h3>Can I edit the data and save it?</h3>
+        <p>You can type into a cell to check something, but there is no export. Nothing is written back to your file, and edits are gone when you reload. This is a viewer, not a spreadsheet editor.</p>
+
+        <h3>Does it work offline?</h3>
+        <p>Not at the moment. The grid and the CSV parser are fetched from a CDN when the page loads, so the first load needs a connection. Reading your file, once the page is open, does not.</p>
+
+        <h3>What does it cost?</h3>
+        <p>Nothing — it is free to use. The sponsor tiles on this page are paid placements.</p>
+      </article>
     </div>
 
     <div id="handsontable-container"></div>
