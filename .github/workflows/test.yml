@@ -13,9 +13,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # canary, not latest: the committed bun.lock is lockfileVersion 2, which
+      # the current stable (1.3.x) cannot parse. Revisit once 1.4 ships stable.
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: canary
 
       - run: bun install --frozen-lockfile
 
