@@ -255,6 +255,24 @@ body.loaded .search {
   background: #0F5AB8;
 }
 
+/* Green rather than the brand blue, so Download reads as its own action next
+   to Open file instead of competing with it. #0B7A3E clears 4.5:1 against
+   white text; the lighter greens that looked nicer did not. */
+.btn.download {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: #0B7A3E;
+}
+
+.btn.download:hover {
+  background: #096632;
+}
+
+.btn.download svg {
+  flex: 0 0 auto;
+}
+
 .btn.quiet {
   background: var(--canvas);
   color: var(--ink);

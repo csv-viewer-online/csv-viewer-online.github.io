@@ -34,7 +34,7 @@
     "description": "View, edit, sort and search CSV files in your browser. Files are parsed locally and never uploaded."
   }
   </script>
-  <link rel="stylesheet" href="./styles.css?16">
+  <link rel="stylesheet" href="./styles.css?17">
   <!-- The grid and parser are fetched on first file open (see app.js), so
        warm the connection now rather than paying for it then. -->
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
@@ -76,8 +76,13 @@
     </span>
 
     <span class="menu">
-      <button class="btn quiet" id="download-btn" type="button" aria-haspopup="true" aria-expanded="false">
-        Download
+      <button class="btn download" id="download-btn" type="button" aria-label="Download" aria-haspopup="true" aria-expanded="false">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M8 1.9v8"/>
+          <path d="M4.7 6.6 8 9.9l3.3-3.3"/>
+          <path d="M2.6 11.6v1.7a.8.8 0 0 0 .8.8h9.2a.8.8 0 0 0 .8-.8v-1.7"/>
+        </svg>
+        <span class="long">Download</span>
       </button>
       <span class="menu-pop" id="download-menu" role="menu" hidden>
         <button type="button" role="menuitem" data-export="csv">Download as CSV</button>
@@ -237,6 +242,6 @@
     <a class="btn dialog-mail" href="mailto:csv-viewer-online@tianon.anonaddy.me?subject=Advertising on CSV Viewer">Open in mail app</a>
   </dialog>
 
-  <script src="./app.js?16"></script>
+  <script src="./app.js?17"></script>
 </body>
 </html>
