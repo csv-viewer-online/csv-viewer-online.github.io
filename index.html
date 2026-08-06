@@ -34,7 +34,7 @@
     "description": "View, edit, sort and search CSV files in your browser. Files are parsed locally and never uploaded."
   }
   </script>
-  <link rel="stylesheet" href="./styles.css?14">
+  <link rel="stylesheet" href="./styles.css?15">
   <!-- The grid and parser are fetched on first file open (see app.js), so
        warm the connection now rather than paying for it then. -->
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
@@ -197,6 +197,15 @@
     </a>
   </aside>
 
+  <dialog class="confirm-dialog" id="discard-dialog" aria-labelledby="discard-dialog-title">
+    <h2 id="discard-dialog-title">Discard your edits?</h2>
+    <p>Starting over throws away <strong id="discard-count">your edits</strong>. Your file on disk is untouched either way, but anything you changed here has not been saved anywhere.</p>
+    <div class="confirm-actions">
+      <button class="btn quiet" id="discard-cancel" type="button">Keep editing</button>
+      <button class="btn danger" id="discard-confirm" type="button">Discard and start over</button>
+    </div>
+  </dialog>
+
   <dialog class="sponsor-dialog" id="sponsor-dialog" aria-labelledby="sponsor-dialog-title">
     <button class="dialog-close" id="sponsor-dialog-close" type="button" aria-label="Close">&times;</button>
 
@@ -228,6 +237,6 @@
     <a class="btn dialog-mail" href="mailto:csv-viewer-online@tianon.anonaddy.me?subject=Advertising on CSV Viewer">Open in mail app</a>
   </dialog>
 
-  <script src="./app.js?14"></script>
+  <script src="./app.js?15"></script>
 </body>
 </html>

@@ -468,6 +468,26 @@ openBtn.onclick = function () {
 searchInput.oninput = applySearch
 
 document.getElementById('revert-edits').addEventListener('click', revertEdits)
+
+/* The wordmark links to /, which reloads and throws away the open file. That
+   was harmless while the grid was read-only; now it is a one-click way to lose
+   work, and it sits exactly where people click to go back. */
+const discardDialog = document.getElementById('discard-dialog')
+
+document.querySelector('a.mark').addEventListener('click', (e) => {
+  const n = countEdits()
+  if (n === 0) return // nothing to lose, let the link behave like a link
+  e.preventDefault()
+  document.getElementById('discard-count').textContent =
+    n === 1 ? '1 edited cell' : `${fmt(n)} edited cells`
+  discardDialog.showModal()
+})
+
+// Escape closes the dialog too, and closing means "keep editing"
+document.getElementById('discard-cancel').addEventListener('click', () => discardDialog.close())
+document.getElementById('discard-confirm').addEventListener('click', () => {
+  window.location.href = '/'
+})
 // Set once, so the hint names the shortcut that actually works on this machine
 document.getElementById('revert-edits').title = `Put every edited cell back to the file's value. Undo one at a time with ${UNDO_KEYS}.`
 
