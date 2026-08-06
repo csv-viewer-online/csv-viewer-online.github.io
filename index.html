@@ -34,7 +34,7 @@
     "description": "View, edit, sort and search CSV files in your browser. Files are parsed locally and never uploaded."
   }
   </script>
-  <link rel="stylesheet" href="./styles.css?13">
+  <link rel="stylesheet" href="./styles.css?14">
   <!-- The grid and parser are fetched on first file open (see app.js), so
        warm the connection now rather than paying for it then. -->
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
@@ -58,6 +58,12 @@
       <span class="count" id="file-count">—</span>
     </span>
     <span class="divider"></span>
+
+    <span class="edits" id="edits" hidden>
+      <span class="edits-dot" aria-hidden="true"></span>
+      <span id="edits-count">0 edited cells</span>
+      <button class="edits-revert" id="revert-edits" type="button">Revert all</button>
+    </span>
 
     <span class="spacer"></span>
 
@@ -222,6 +228,6 @@
     <a class="btn dialog-mail" href="mailto:csv-viewer-online@tianon.anonaddy.me?subject=Advertising on CSV Viewer">Open in mail app</a>
   </dialog>
 
-  <script src="./app.js?13"></script>
+  <script src="./app.js?14"></script>
 </body>
 </html>
