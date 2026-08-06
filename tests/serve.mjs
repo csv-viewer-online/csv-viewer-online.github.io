@@ -5,7 +5,9 @@ import { readFile } from 'node:fs/promises'
 import { extname, join, normalize } from 'node:path'
 
 const ROOT = new URL('..', import.meta.url).pathname
-const PORT = Number(process.env.PORT || 4173)
+// Matches playwright.config.mjs, and deliberately not a common dev-server
+// default (3000/4173/5173/8080) — sharing one risks talking to another project.
+const PORT = Number(process.env.PORT || 4319)
 
 const TYPES = {
   '.html': 'text/html; charset=utf-8',
