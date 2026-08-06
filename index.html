@@ -34,7 +34,7 @@
     "description": "View, edit, sort and search CSV files in your browser. Files are parsed locally and never uploaded."
   }
   </script>
-  <link rel="stylesheet" href="./styles.css?11">
+  <link rel="stylesheet" href="./styles.css?12">
   <!-- The grid and parser are fetched on first file open (see app.js), so
        warm the connection now rather than paying for it then. -->
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
@@ -157,10 +157,10 @@
   <aside class="rail" aria-label="Sponsors">
     <p class="rail-h">Sponsors</p>
 
-    <a class="tile cta" href="mailto:csv-viewer-online@tianon.anonaddy.me?subject=Advertising on CSV Viewer">
+    <button class="tile cta" id="sponsor-cta" type="button" aria-haspopup="dialog">
       <b>Your ad here</b>
       <span>~50k visitors monthly<br>$19/month</span>
-    </a>
+    </button>
 
     <a class="tile" href="https://venopay.xyz/" target="_blank" rel="noopener">
       <img src="/images/venopay.png" alt=""> VenoPay
@@ -191,6 +191,37 @@
     </a>
   </aside>
 
-  <script src="./app.js?11"></script>
+  <dialog class="sponsor-dialog" id="sponsor-dialog" aria-labelledby="sponsor-dialog-title">
+    <button class="dialog-close" id="sponsor-dialog-close" type="button" aria-label="Close">&times;</button>
+
+    <h2 id="sponsor-dialog-title">Advertise here</h2>
+    <p class="dialog-lede">Your logo and name in the sidebar — visible on every visit, and while someone is working with their file.</p>
+
+    <dl class="stats">
+      <div>
+        <dt>Visitors</dt>
+        <dd>~50,000<span>per month</span></dd>
+      </div>
+      <div>
+        <dt>Google</dt>
+        <dd>#2<span>for “CSV Viewer”</span></dd>
+      </div>
+      <div>
+        <dt>Price</dt>
+        <dd>$19<span>per month</span></dd>
+      </div>
+    </dl>
+
+    <p class="dialog-note">Mostly developers, analysts and people wrangling exports. No tracking, no popups, nothing that gets between a visitor and their file.</p>
+
+    <p class="dialog-label">Get in touch</p>
+    <div class="email-row">
+      <code id="sponsor-email">csv-viewer-online@tianon.anonaddy.me</code>
+      <button class="btn quiet" id="copy-email" type="button">Copy</button>
+    </div>
+    <a class="btn dialog-mail" href="mailto:csv-viewer-online@tianon.anonaddy.me?subject=Advertising on CSV Viewer">Open in mail app</a>
+  </dialog>
+
+  <script src="./app.js?12"></script>
 </body>
 </html>
