@@ -219,6 +219,35 @@ async function loadFile(file, extraWarning) {
   }
 }
 
+/* ── Sponsor enquiry dialog ────────────────────────────────────────────────
+   Replaces a bare mailto: on the "Your ad here" tile, which fired the mail
+   client with no idea what was being offered. Native <dialog>, so focus
+   trapping, Escape and the backdrop come from the browser. */
+
+const sponsorDialog = document.getElementById('sponsor-dialog')
+const copyEmailBtn = document.getElementById('copy-email')
+
+document.getElementById('sponsor-cta').addEventListener('click', () => {
+  sponsorDialog.showModal()
+})
+
+document.getElementById('sponsor-dialog-close').addEventListener('click', () => {
+  sponsorDialog.close()
+})
+
+// Clicking the backdrop closes it. The dialog's own box is the only child that
+// receives clicks, so a click landing on <dialog> itself is a backdrop click.
+sponsorDialog.addEventListener('click', (e) => {
+  if (e.target === sponsorDialog) sponsorDialog.close()
+})
+
+copyEmailBtn.addEventListener('click', async () => {
+  const address = document.getElementById('sponsor-email').textContent.trim()
+  const copied = await copyText(address)
+  copyEmailBtn.textContent = copied ? 'Copied' : 'Press ⌘C'
+  setTimeout(() => { copyEmailBtn.textContent = 'Copy' }, 2000)
+})
+
 /* ── Download ──────────────────────────────────────────────────────────────
    What downloads is what is on screen: rows are read by visual index, so the
    chosen sort order, the active search filter and any cell edits all carry
