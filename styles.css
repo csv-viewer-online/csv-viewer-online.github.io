@@ -760,7 +760,8 @@ body.no-match .search-empty {
 
 /* Sponsor enquiry dialog. Native <dialog> so focus trapping, Escape and the
    backdrop come from the browser rather than hand-rolled JS. */
-.sponsor-dialog {
+.sponsor-dialog,
+.confirm-dialog {
   width: min(430px, calc(100vw - 32px));
   padding: 26px 26px 24px;
   border: 1px solid var(--border);
@@ -770,7 +771,8 @@ body.no-match .search-empty {
   font-family: var(--ui);
 }
 
-.sponsor-dialog::backdrop {
+.sponsor-dialog::backdrop,
+.confirm-dialog::backdrop {
   background: rgba(16, 22, 33, 0.42);
 }
 
@@ -795,7 +797,8 @@ body.no-match .search-empty {
   color: var(--ink);
 }
 
-.sponsor-dialog h2 {
+.sponsor-dialog h2,
+.confirm-dialog h2 {
   margin: 0 0 6px;
   font-size: 19px;
   font-weight: 700;
@@ -994,4 +997,30 @@ body.no-match .search-empty {
   * {
     transition: none !important;
   }
+}
+
+/* Discard confirmation */
+.confirm-dialog p {
+  margin: 0 0 20px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--prose);
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.confirm-actions .btn {
+  height: 34px;
+}
+
+.btn.danger {
+  background: #B42318;
+}
+
+.btn.danger:hover {
+  background: #97200F;
 }
