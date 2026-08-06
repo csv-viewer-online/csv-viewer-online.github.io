@@ -51,12 +51,56 @@ test('emptying a cell with Delete marks it', async ({ page }) => {
     .toHaveClass(/is-edited/)
 })
 
-test('retyping the original value still counts as untouched-looking data', async ({ page }) => {
-  // Marking is about "you changed this", so a no-op edit should not mark
+test('a no-op edit on an untouched cell does not mark it', async ({ page }) => {
   await open(page)
   const original = await page.locator(CELL(1, 2)).textContent()
   await editCell(page, 1, 2, original)
   await expect(page.locator(CELL(1, 2))).not.toHaveClass(/is-edited/)
+})
+
+// Undo restores the file's value, so the cell is no longer edited. Marking
+// only ever added, so the flag and the count both used to survive an undo.
+const UNDO = process.platform === 'darwin' ? 'Meta+z' : 'Control+z'
+
+test('undo clears the marker and the count', async ({ page }) => {
+  await open(page)
+  const original = await page.locator(CELL(1, 2)).textContent()
+
+  await page.click(CELL(1, 2))
+  await page.keyboard.press('Delete')
+  await expect(page.locator(CELL(1, 2))).toHaveClass(/is-edited/)
+  await expect(page.locator('#edits-count')).toHaveText('1 edited cell')
+
+  await page.keyboard.press(UNDO)
+  await expect(page.locator(CELL(1, 2))).toHaveText(original)
+  await expect(page.locator(CELL(1, 2))).not.toHaveClass(/is-edited/)
+  await expect(page.locator('#edits')).toBeHidden()
+})
+
+test('retyping the original value after an edit clears the marker', async ({ page }) => {
+  await open(page)
+  const original = await page.locator(CELL(1, 2)).textContent()
+
+  await editCell(page, 1, 2, 'CHANGED')
+  await expect(page.locator(CELL(1, 2))).toHaveClass(/is-edited/)
+
+  await editCell(page, 1, 2, original)
+  await expect(page.locator(CELL(1, 2))).not.toHaveClass(/is-edited/)
+  await expect(page.locator('#edits')).toBeHidden()
+})
+
+test('undoing one of two edits leaves the other marked', async ({ page }) => {
+  await open(page)
+  await editCell(page, 1, 2, 'first')
+  await editCell(page, 2, 2, 'second')
+  await expect(page.locator('#edits-count')).toHaveText('2 edited cells')
+
+  await page.click(CELL(2, 2))
+  await page.keyboard.press(UNDO)
+
+  await expect(page.locator('#edits-count')).toHaveText('1 edited cell')
+  await expect(page.locator(CELL(1, 2))).toHaveClass(/is-edited/)
+  await expect(page.locator(CELL(2, 2))).not.toHaveClass(/is-edited/)
 })
 
 test('the marker follows its row when the grid is sorted', async ({ page }) => {

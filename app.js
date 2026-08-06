@@ -186,15 +186,31 @@ function rowAt(visualRow) {
   return gridRows[hot.toPhysicalRow(visualRow)]
 }
 
-/* Keeps the value the file arrived with, so an edit can be undone in bulk.
-   Only the first change to a cell is recorded — editing twice should revert
-   to the file, not to the intermediate value. */
-function markEdited(visualRow, prop, originalValue) {
+/* Handsontable hands back '' for a cleared cell and null for an absent one,
+   so compare loosely — otherwise undoing a Delete looks like a new value. */
+const sameValue = (a, b) => (a == null ? '' : String(a)) === (b == null ? '' : String(b))
+
+/* Records the value the file arrived with, so an edit can be undone in bulk,
+   and drops the record once a cell is back to that value — by undo, or by
+   simply retyping it. Without the second half a cell stays flagged as edited
+   while showing exactly what the file contained. */
+function noteChange(visualRow, prop, oldValue, newValue) {
   const row = rowAt(visualRow)
   if (!row) return
-  if (!editedCells.has(row)) editedCells.set(row, new Map())
   const cells = editedCells.get(row)
-  if (!cells.has(prop)) cells.set(prop, originalValue)
+
+  if (cells?.has(prop)) {
+    if (sameValue(newValue, cells.get(prop))) {
+      cells.delete(prop)
+      if (cells.size === 0) editedCells.delete(row)
+    }
+    return
+  }
+
+  // Only the first change to a cell is recorded, so reverting goes back to the
+  // file rather than to an intermediate value.
+  if (sameValue(oldValue, newValue)) return
+  editedCells.set(row, (cells ?? new Map()).set(prop, oldValue))
 }
 
 function countEdits() {
@@ -246,15 +262,12 @@ function render() {
       // loadData fires this too, and that is the file arriving, not an edit
       if (!changes || source === 'loadData' || source === 'updateData') return
 
-      let marked = false
       for (const [visualRow, prop, oldValue, newValue] of changes) {
-        if (oldValue === newValue) continue
-        markEdited(visualRow, prop, oldValue)
-        marked = true
+        noteChange(visualRow, prop, oldValue, newValue)
       }
-      if (!marked) return
       updateEditsIndicator()
-      // Re-render so the marker appears; this does not fire afterChange again
+      // Re-render so markers appear and disappear; this does not fire
+      // afterChange again
       hot.render()
     }
   })
