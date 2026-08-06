@@ -612,6 +612,24 @@ body.no-match .search-empty {
   background-image: none;
 }
 
+/* A cell whose value differs from the file as it was opened. Marked with a
+   corner flag rather than a background tint, so it stays visible while the
+   cell is selected and cannot be mistaken for a value the file contained. */
+.handsontable td.is-edited {
+  position: relative;
+}
+
+.handsontable td.is-edited::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  border: 5px solid transparent;
+  border-top-color: #C7861F;
+  border-right-color: #C7861F;
+  pointer-events: none;
+}
+
 /* Sponsor rail — one uniform frame per tile, so a loud logo can't set the
    tone of the whole page. */
 .rail {
