@@ -160,11 +160,46 @@ function applySearch() {
 
   document.body.classList.toggle('no-match', rows.length === 0)
   setCount(rows.length)
-  if (hot && rows.length) hot.loadData(rows)
+  if (hot && rows.length) {
+    gridRows = rows
+    hot.loadData(rows)
+  }
+}
+
+/* Which cells the reader has changed since the file was opened.
+   Keyed by the row object, so a mark stays with its row when the grid is
+   sorted or filtered down to a subset — indices shift, the objects do not.
+
+   The lookup deliberately goes through our own array rather than
+   getSourceDataAtRow, which returns a fresh clone on every call and so can
+   never match anything by identity. */
+let editedCells = new Map()
+let gridRows = []
+
+function rowAt(visualRow) {
+  return gridRows[hot.toPhysicalRow(visualRow)]
+}
+
+function markEdited(visualRow, prop) {
+  const row = rowAt(visualRow)
+  if (!row) return
+  if (!editedCells.has(row)) editedCells.set(row, new Set())
+  editedCells.get(row).add(prop)
+}
+
+/* Applied as a renderer rather than through `cells`, because Handsontable
+   caches cell meta against visual coordinates and does not invalidate it when
+   a sort reorders the rows — the marker would stay behind on whichever row
+   moved into that position. A renderer runs fresh on every draw. */
+function editedRenderer(instance, td, visualRow, column, prop, value, cellProperties) {
+  Handsontable.renderers.TextRenderer.apply(this, arguments)
+  const row = gridRows[instance.toPhysicalRow(visualRow)]
+  td.classList.toggle('is-edited', Boolean(row && editedCells.get(row)?.has(prop)))
 }
 
 function render() {
   if (hot) hot.destroy()
+  gridRows = allRows
   hot = new Handsontable(handsontableContainer, {
     data: allRows,
     colHeaders: fields,
@@ -174,7 +209,21 @@ function render() {
     stretchH: 'all',
     width: '100%',
     height: '100%',
-    licenseKey: 'non-commercial-and-evaluation'
+    licenseKey: 'non-commercial-and-evaluation',
+    renderer: editedRenderer,
+    afterChange(changes, source) {
+      // loadData fires this too, and that is the file arriving, not an edit
+      if (!changes || source === 'loadData' || source === 'updateData') return
+
+      let marked = false
+      for (const [visualRow, prop, oldValue, newValue] of changes) {
+        if (oldValue === newValue) continue
+        markEdited(visualRow, prop)
+        marked = true
+      }
+      // Re-render so the marker appears; this does not fire afterChange again
+      if (marked) hot.render()
+    }
   })
 }
 
@@ -197,6 +246,7 @@ async function loadFile(file, extraWarning) {
     encodingLabel = decoded.encoding === 'UTF-8' ? '' : decoded.encoding
     delimiter = parsed.meta.delimiter || ','
     delimiterLabel = DELIMITER_NAMES[parsed.meta.delimiter] ?? `“${parsed.meta.delimiter}” separated`
+    editedCells = new Map()
     searchInput.value = ''
 
     document.body.classList.remove('loading', 'no-match')
