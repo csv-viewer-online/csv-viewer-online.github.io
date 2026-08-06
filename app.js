@@ -7,6 +7,12 @@ const dropStatus = document.getElementById('drop-status')
 const notice = document.getElementById('notice')
 const noticeText = document.getElementById('notice-text')
 const handsontableContainer = document.getElementById('handsontable-container')
+const editsBadge = document.getElementById('edits')
+const editsCount = document.getElementById('edits-count')
+
+// Handsontable binds undo to the platform's own modifier, so the hint has to
+// match or it sends people looking for a shortcut that does nothing here.
+const UNDO_KEYS = /Mac|iPhone|iPad/.test(navigator.platform || '') ? '\u2318Z' : 'Ctrl+Z'
 
 let hot = null
 let allRows = []
@@ -180,11 +186,36 @@ function rowAt(visualRow) {
   return gridRows[hot.toPhysicalRow(visualRow)]
 }
 
-function markEdited(visualRow, prop) {
+/* Keeps the value the file arrived with, so an edit can be undone in bulk.
+   Only the first change to a cell is recorded — editing twice should revert
+   to the file, not to the intermediate value. */
+function markEdited(visualRow, prop, originalValue) {
   const row = rowAt(visualRow)
   if (!row) return
-  if (!editedCells.has(row)) editedCells.set(row, new Set())
-  editedCells.get(row).add(prop)
+  if (!editedCells.has(row)) editedCells.set(row, new Map())
+  const cells = editedCells.get(row)
+  if (!cells.has(prop)) cells.set(prop, originalValue)
+}
+
+function countEdits() {
+  let n = 0
+  for (const cells of editedCells.values()) n += cells.size
+  return n
+}
+
+function updateEditsIndicator() {
+  const n = countEdits()
+  editsBadge.hidden = n === 0
+  editsCount.textContent = n === 1 ? '1 edited cell' : `${fmt(n)} edited cells`
+}
+
+function revertEdits() {
+  for (const [row, cells] of editedCells) {
+    for (const [prop, originalValue] of cells) row[prop] = originalValue
+  }
+  editedCells = new Map()
+  updateEditsIndicator()
+  if (hot) hot.render()
 }
 
 /* Applied as a renderer rather than through `cells`, because Handsontable
@@ -218,11 +249,13 @@ function render() {
       let marked = false
       for (const [visualRow, prop, oldValue, newValue] of changes) {
         if (oldValue === newValue) continue
-        markEdited(visualRow, prop)
+        markEdited(visualRow, prop, oldValue)
         marked = true
       }
+      if (!marked) return
+      updateEditsIndicator()
       // Re-render so the marker appears; this does not fire afterChange again
-      if (marked) hot.render()
+      hot.render()
     }
   })
 }
@@ -247,6 +280,7 @@ async function loadFile(file, extraWarning) {
     delimiter = parsed.meta.delimiter || ','
     delimiterLabel = DELIMITER_NAMES[parsed.meta.delimiter] ?? `“${parsed.meta.delimiter}” separated`
     editedCells = new Map()
+    updateEditsIndicator()
     searchInput.value = ''
 
     document.body.classList.remove('loading', 'no-match')
@@ -432,6 +466,10 @@ openBtn.onclick = function () {
 }
 
 searchInput.oninput = applySearch
+
+document.getElementById('revert-edits').addEventListener('click', revertEdits)
+// Set once, so the hint names the shortcut that actually works on this machine
+document.getElementById('revert-edits').title = `Put every edited cell back to the file's value. Undo one at a time with ${UNDO_KEYS}.`
 
 window.addEventListener('keydown', (e) => {
   if (e.key === '/' && document.activeElement !== searchInput && document.body.classList.contains('loaded')) {
