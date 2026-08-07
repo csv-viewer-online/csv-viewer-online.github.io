@@ -72,7 +72,7 @@ self.addEventListener('message', (e) => {
 
 const isImmutable = (url) => url.pathname.includes('/vendor/') || url.pathname.includes('/icons/')
 
-// Key on the path alone: index.html asks for styles.css?17 but the precache
+// Key on the path alone: index.html asks for styles.css?N but the precache
 // holds styles.css, and ignoreSearch returns the FIRST match — so an
 // un-normalised put would leave the stale install-time copy winning forever.
 const cacheKey = (request) => {
@@ -100,7 +100,7 @@ async function networkFirst(request) {
     return res
   } catch (err) {
     clearTimeout(timer)
-    // ignoreSearch because index.html requests ./styles.css?17 and ./app.js?17
+    // ignoreSearch because index.html requests ./styles.css?N and ./app.js?N
     // while the cache holds them unqueried.
     const hit = await cache.match(request, { ignoreSearch: true })
     if (hit) return hit
