@@ -7,6 +7,18 @@ uploaded: the file is read straight from disk by the page you already have
 open, parsed in memory, and drawn on screen. No account, nothing to delete
 afterwards, and no upload request carrying your data.
 
+## Install it
+
+The site is a PWA. Chrome and Edge offer an install button in the address
+bar; on iOS use Share → Add to Home Screen.
+
+Installed, it works with no network at all — the grid and parser are cached
+on first launch. A browser tab deliberately does not cache them, so opening
+the site in a tab stays as light as it has always been.
+
+Installed on desktop Chrome or Edge, it also registers as a handler for
+`.csv`, so you can open one straight from Finder or Explorer.
+
 ## What it does
 
 - **Commas, semicolons, tabs and pipes** — the separator is detected
