@@ -248,7 +248,15 @@
     // worker registers.
     if ('serviceWorker' in navigator) {
       addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(() => {})
+        navigator.serviceWorker.register('./sw.js').then(async () => {
+          // Only an installed app pays for the 1.6 MB grid up front. A browser
+          // tab keeps today's page weight and fetches it on first file open.
+          if (!matchMedia('(display-mode: standalone)').matches) return
+          const reg = await navigator.serviceWorker.ready
+          // reg.active rather than .controller: on a first launch the page is
+          // not yet controlled, which is exactly when warming matters most.
+          if (reg.active) reg.active.postMessage({ type: 'warm-vendor' })
+        }).catch(() => {})
       })
     }
   </script>

@@ -1,4 +1,8 @@
 import { test, expect } from '@playwright/test'
+import { ensureFixtures } from './fixtures.mjs'
+
+let paths
+test.beforeAll(async () => { paths = await ensureFixtures() })
 
 test('the manifest is served, parses, and declares what installation needs', async ({ request }) => {
   const res = await request.get('/manifest.webmanifest')
@@ -144,5 +148,49 @@ test('a refreshed shell asset replaces the stale offline copy, not just the onli
   await context.setOffline(true)
   await page.reload()
   await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(1, 2, 3)')
+  await context.setOffline(false)
+})
+
+test('a browser tab does not precache the grid', async ({ page }) => {
+  // The whole reason vendor/ is not in SHELL. If this fails, the change has
+  // silently reversed the 1.6 MB deferral that app.js exists to provide.
+  const requested = []
+  page.on('request', (r) => requested.push(r.url()))
+
+  await page.goto('/')
+  await page.evaluate(() => navigator.serviceWorker.ready)
+  await page.waitForLoadState('networkidle')
+
+  expect(requested.some((u) => /handsontable/.test(u)), 'a tab must not warm the grid').toBe(false)
+})
+
+test('after warming, an installed client opens a file with the network off', async ({ page, context }) => {
+  await page.goto('/')
+
+  // display-mode: standalone cannot be faked reliably in Playwright, so the
+  // message the installed branch sends is posted directly. The branch itself
+  // is covered by the tab test above.
+  await page.evaluate(async () => {
+    const reg = await navigator.serviceWorker.ready
+    reg.active.postMessage({ type: 'warm-vendor' })
+  })
+
+  await page.waitForFunction(
+    async () => {
+      const c = await caches.open('csv-viewer-v1')
+      return !!(await c.match('./vendor/handsontable.full.min.js', { ignoreSearch: true }))
+    },
+    null,
+    { timeout: 30_000 }
+  )
+
+  await page.reload()
+  await context.setOffline(true)
+  await page.reload()
+
+  await page.setInputFiles('#input-file', paths['plain.csv'])
+  await expect(page.locator('body')).toHaveClass(/loaded/)
+  await expect(page.locator('#handsontable-container .ht_master tbody tr')).toHaveCount(3)
+
   await context.setOffline(false)
 })

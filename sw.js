@@ -55,6 +55,19 @@ self.addEventListener('activate', (e) => {
 // fresh launch rather than mid-session, so it can never reload a page holding
 // unsaved edits.
 
+// Only an installed client asks for this. Failures are swallowed on purpose:
+// a warm that does not finish leaves the app exactly as capable as a browser
+// tab, which is the status quo rather than a regression.
+self.addEventListener('message', (e) => {
+  if (!e.data || e.data.type !== 'warm-vendor') return
+  e.waitUntil(
+    caches
+      .open(CACHE)
+      .then((c) => c.addAll(VENDOR))
+      .catch(() => {})
+  )
+})
+
 const isImmutable = (url) => url.pathname.includes('/vendor/') || url.pathname.includes('/icons/')
 
 // Key on the path alone: index.html asks for styles.css?17 but the precache
