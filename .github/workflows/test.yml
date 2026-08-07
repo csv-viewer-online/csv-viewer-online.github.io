@@ -11,7 +11,7 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # canary, not latest: the committed bun.lock is lockfileVersion 2, which
       # the current stable (1.3.x) cannot parse. Revisit once 1.4 ships stable.
