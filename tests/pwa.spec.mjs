@@ -299,3 +299,33 @@ test('a rejecting getFile() from the OS launch surfaces an error, not silence', 
   await expect(page.locator('body')).toHaveClass(/load-error/)
   await expect(page.locator('#drop-status')).toHaveText('Could not open that file. It may have been moved or deleted.')
 })
+
+test('a rejecting getFile() from the OS launch is still visible when a file is already open', async ({ page }) => {
+  // The previous test only covers the empty state, where #drop-status lives
+  // in the visible .empty block. Once a file is already open, body carries
+  // the loaded class and styles.css hides .empty (and #drop-status with it),
+  // so writing the error there again is silent: a second OS launch that
+  // fails looks exactly like nothing happened. The fix routes this case
+  // through showNotice, which is not inside .empty.
+  await page.addInitScript(() => {
+    Object.defineProperty(window, 'launchQueue', {
+      value: { setConsumer: (fn) => { window.__fire = fn } },
+      configurable: true,
+      writable: true
+    })
+  })
+  await page.goto('/')
+
+  await page.setInputFiles('#input-file', paths['plain.csv'])
+  await expect(page.locator('body')).toHaveClass(/loaded/)
+
+  await page.evaluate(async () => {
+    const handle = { getFile: async () => { throw new Error('file not found') } }
+    await window.__fire({ files: [handle] })
+  })
+
+  // The user's already-open data must not be thrown away by the failed launch.
+  await expect(page.locator('body')).toHaveClass(/loaded/)
+  await expect(page.locator('#notice')).toBeVisible()
+  await expect(page.locator('#notice-text')).toHaveText('Could not open that file. It may have been moved or deleted.')
+})

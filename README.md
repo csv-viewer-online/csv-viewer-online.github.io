@@ -13,8 +13,9 @@ The site is a PWA. Chrome and Edge offer an install button in the address
 bar; on iOS use Share → Add to Home Screen.
 
 Installed, it works with no network at all — the grid and parser are cached
-on first launch. A browser tab deliberately does not cache them, so opening
-the site in a tab stays as light as it has always been.
+on first launch. A browser tab deliberately does not preload them, so opening
+the site in a tab stays as light as it has always been; they are still only
+fetched, and cached, once a file is actually opened.
 
 Installed on desktop Chrome or Edge, it also registers as a handler for
 `.csv`, so you can open one straight from Finder or Explorer.

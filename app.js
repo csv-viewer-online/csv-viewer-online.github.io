@@ -592,12 +592,14 @@ window.addEventListener('drop', (e) => {
    Otherwise this mirrors the drop handler on purpose: multiple files hand
    the same "only one shown" notice rather than silently dropping the extras,
    and a failed getFile() — the file was moved, deleted, or its permission
-   was revoked between the OS launch and consumption — surfaces through the
-   same load-error / dropStatus path loadFile's own catch uses, rather than
+   was revoked between the OS launch and consumption — surfaces rather than
    rejecting into the void. The native LaunchQueue that calls this function
    attaches no rejection handler, so an uncaught throw here would leave the
    user looking at an unchanged page with no sign the double-click did
-   anything. */
+   anything. Where that surfaces depends on state: the empty state uses the
+   same load-error / dropStatus path loadFile's own catch uses, but once a
+   file is already open that element is hidden, so showNotice is used
+   instead — see the catch below. */
 async function openLaunchedFiles({ files }) {
   if (!files || !files.length) return
 
@@ -606,8 +608,17 @@ async function openLaunchedFiles({ files }) {
     file = await files[0].getFile()
   } catch (err) {
     console.error('csv-viewer: launch failed', err)
-    document.body.classList.add('load-error')
-    dropStatus.textContent = 'Could not open that file. It may have been moved or deleted.'
+    // #drop-status lives inside .empty, which body.loaded hides — so once a
+    // file is already open, writing there is invisible. showNotice sits
+    // outside .empty and is what the loaded state uses to surface problems,
+    // and the loaded class itself must stay put: the user's current data is
+    // still good and should not vanish because a second launch failed.
+    if (document.body.classList.contains('loaded')) {
+      showNotice('Could not open that file. It may have been moved or deleted.', 'error')
+    } else {
+      document.body.classList.add('load-error')
+      dropStatus.textContent = 'Could not open that file. It may have been moved or deleted.'
+    }
     return
   }
 

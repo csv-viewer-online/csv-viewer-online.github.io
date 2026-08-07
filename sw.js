@@ -13,7 +13,9 @@
  * every successful fetch refreshes the copy that offline will fall back to.
  */
 
-// Bumped only when vendor/ changes. The shell refreshes itself.
+// Bumped only when vendor/ or icons/ changes — both are cached first,
+// forever, so nothing else revalidates them for an existing install. The
+// shell refreshes itself.
 const CACHE = 'csv-viewer-v1'
 
 const SHELL = [
