@@ -1,5 +1,5 @@
 {
-  "name": "CSV Viewer & Editor Online",
+  "name": "CSV Viewer & Editor",
   "short_name": "CSV Viewer",
   "description": "Open, edit, sort and search CSV files. Nothing is uploaded — your file is parsed on your own device.",
   "start_url": "/",

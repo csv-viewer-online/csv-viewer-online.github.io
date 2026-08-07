@@ -16,6 +16,14 @@ test('the product is named as a viewer and editor throughout', async ({ page }) 
   expect(ld.name).toBe('CSV Viewer & Editor Online')
   expect(ld.description).toMatch(/edit/i)
 
+  // The installed app is named like the wordmark, not like the page: "Online"
+  // is a search term people type, and it reads as a contradiction under an
+  // icon on an app that runs with no network. Asserted against the wordmark
+  // rather than a literal so the two cannot drift apart.
+  const manifest = await (await page.request.get('/manifest.webmanifest')).json()
+  expect(manifest.name).toBe(await page.locator('.mark span').innerText())
+  expect(manifest.name).not.toMatch(/online/i)
+
   // Editing is described in the prose, not only implied by the UI
   const prose = await page.locator('.content').innerText()
   expect(prose).toMatch(/edit/i)
