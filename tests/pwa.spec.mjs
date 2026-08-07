@@ -250,3 +250,52 @@ test('the page still works where launchQueue does not exist', async ({ page }) =
   await expect(page.locator('#drop-zone')).toBeVisible()
   expect(errors).toEqual([])
 })
+
+test('a multi-file OS launch opens the first file and shows the notice', async ({ page }) => {
+  // Mirrors the drop handler's own multi-file case: the launch path is not
+  // allowed to be the one silent entry point when extra files are handed
+  // over that cannot be shown.
+  await page.addInitScript(() => {
+    Object.defineProperty(window, 'launchQueue', {
+      value: { setConsumer: (fn) => { window.__fire = fn } },
+      configurable: true,
+      writable: true
+    })
+  })
+  await page.goto('/')
+
+  await page.evaluate(async () => {
+    const csv = 'name,city\nAcme,Berlin\n'
+    const first = { getFile: async () => new File([csv], 'first.csv', { type: 'text/csv' }) }
+    const second = { getFile: async () => new File([csv], 'second.csv', { type: 'text/csv' }) }
+    await window.__fire({ files: [first, second] })
+  })
+
+  await expect(page.locator('body')).toHaveClass(/loaded/)
+  await expect(page.locator('#file-name')).toHaveText('first.csv')
+  await expect(page.locator('#notice-text')).toHaveText('Opened first.csv. Only one file can be viewed at a time.')
+})
+
+test('a rejecting getFile() from the OS launch surfaces an error, not silence', async ({ page }) => {
+  // If the launched file was moved, deleted, or its permission was revoked
+  // between the OS launch and consumption, getFile() rejects. openLaunchedFiles
+  // is invoked by the native LaunchQueue, which attaches no rejection handler
+  // of its own, so an uncaught rejection here would leave the user staring at
+  // an unchanged page with no sign the double-click did anything.
+  await page.addInitScript(() => {
+    Object.defineProperty(window, 'launchQueue', {
+      value: { setConsumer: (fn) => { window.__fire = fn } },
+      configurable: true,
+      writable: true
+    })
+  })
+  await page.goto('/')
+
+  await page.evaluate(async () => {
+    const handle = { getFile: async () => { throw new Error('file not found') } }
+    await window.__fire({ files: [handle] })
+  })
+
+  await expect(page.locator('body')).toHaveClass(/load-error/)
+  await expect(page.locator('#drop-status')).toHaveText('Could not open that file. It may have been moved or deleted.')
+})

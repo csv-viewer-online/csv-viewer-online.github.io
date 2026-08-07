@@ -587,10 +587,33 @@ window.addEventListener('drop', (e) => {
    not on the other two entry points either — both input.onchange and the drop
    handler replace the open file without asking — and making OS-launch the one
    strict path would be an inconsistency, not an improvement. Guarding all
-   three belongs in its own change. */
+   three belongs in its own change.
+
+   Otherwise this mirrors the drop handler on purpose: multiple files hand
+   the same "only one shown" notice rather than silently dropping the extras,
+   and a failed getFile() — the file was moved, deleted, or its permission
+   was revoked between the OS launch and consumption — surfaces through the
+   same load-error / dropStatus path loadFile's own catch uses, rather than
+   rejecting into the void. The native LaunchQueue that calls this function
+   attaches no rejection handler, so an uncaught throw here would leave the
+   user looking at an unchanged page with no sign the double-click did
+   anything. */
 async function openLaunchedFiles({ files }) {
   if (!files || !files.length) return
-  loadFile(await files[0].getFile())
+
+  let file
+  try {
+    file = await files[0].getFile()
+  } catch (err) {
+    console.error('csv-viewer: launch failed', err)
+    document.body.classList.add('load-error')
+    dropStatus.textContent = 'Could not open that file. It may have been moved or deleted.'
+    return
+  }
+
+  loadFile(file, files.length > 1
+    ? `Opened ${file.name}. Only one file can be viewed at a time.`
+    : '')
 }
 
 if ('launchQueue' in window) {
