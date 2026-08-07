@@ -12,7 +12,10 @@ test('the manifest is served, parses, and declares what installation needs', asy
   expect(res.headers()['content-type']).toContain('application/manifest+json')
 
   const m = JSON.parse(await res.text())
-  expect(m.name).toBe('CSV Viewer & Editor Online')
+  // No "Online": this is the label under the installed icon, on an app whose
+  // whole point is working without a network. The page keeps it — see the
+  // naming test in branding.spec.mjs.
+  expect(m.name).toBe('CSV Viewer & Editor')
   expect(m.short_name).toBe('CSV Viewer')
   expect(m.start_url).toBe('/')
   expect(m.scope).toBe('/')
