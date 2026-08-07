@@ -91,7 +91,7 @@ test('the shell still loads with the network off', async ({ page, context }) => 
   await context.setOffline(false)
 })
 
-test('the ?17 versioned css and js resolve from cache offline', async ({ page, context }) => {
+test('the version-queried css and js resolve from cache offline', async ({ page, context }) => {
   await page.goto('/')
   await page.evaluate(() => navigator.serviceWorker.ready)
   await page.reload()
@@ -99,7 +99,7 @@ test('the ?17 versioned css and js resolve from cache offline', async ({ page, c
   await context.setOffline(true)
   await page.reload()
 
-  // index.html asks for ./styles.css?17 but the cache holds ./styles.css.
+  // index.html asks for ./styles.css?N but the cache holds ./styles.css.
   // Without ignoreSearch this misses, and the page renders unstyled offline
   // while looking perfectly fine online.
   const applied = await page.evaluate(() => ({
@@ -142,7 +142,7 @@ test('a refreshed shell asset replaces the stale offline copy, not just the onli
   await context.unroute('**/styles.css*')
 
   // Offline reload: the cache must now serve the NEW bytes. If cache.put had
-  // keyed on the queried request (./styles.css?17) instead of the bare path,
+  // keyed on the queried request (./styles.css?N) instead of the bare path,
   // two entries would exist and ignoreSearch's first match — the stale
   // install-time one — would win forever.
   await context.setOffline(true)
