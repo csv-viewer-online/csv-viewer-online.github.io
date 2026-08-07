@@ -151,11 +151,14 @@ test('a refreshed shell asset replaces the stale offline copy, not just the onli
   await context.setOffline(false)
 })
 
-test('a browser tab does not precache the grid', async ({ page }) => {
+test('a browser tab does not precache the grid', async ({ page, context }) => {
   // The whole reason vendor/ is not in SHELL. If this fails, the change has
   // silently reversed the 1.6 MB deferral that app.js exists to provide.
   const requested = []
-  page.on('request', (r) => requested.push(r.url()))
+  // context, not page: page.on('request') is blind to service-worker-initiated
+  // fetches, so the precache this test exists to catch would go unseen. Verified
+  // by putting vendor/ into SHELL — the page-scoped listener still reported clean.
+  context.on('request', (r) => requested.push(r.url()))
 
   await page.goto('/')
   await page.evaluate(() => navigator.serviceWorker.ready)

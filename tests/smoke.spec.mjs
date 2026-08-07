@@ -97,10 +97,13 @@ test.describe('empty state', () => {
   }
 })
 
-test('the grid is not downloaded until a file is opened', async ({ page }) => {
+test('the grid is not downloaded until a file is opened', async ({ page, context }) => {
   // Guards the 1.67 MB deferral: this is 92% of what page weight used to be.
   const requested = []
-  page.on('request', (r) => requested.push(r.url()))
+  // context, not page: page.on('request') is blind to service-worker-initiated
+  // fetches, so a precache regression would go unseen. Verified by putting
+  // vendor/ into SHELL — the page-scoped listener still reported clean.
+  context.on('request', (r) => requested.push(r.url()))
   await page.goto('/')
   await page.waitForLoadState('networkidle')
 
