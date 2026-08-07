@@ -242,6 +242,16 @@
     <a class="btn dialog-mail" href="mailto:csv-viewer-online@tianon.anonaddy.me?subject=Advertising on CSV Viewer">Open in mail app</a>
   </dialog>
 
+  <script>
+    // Registered inline rather than from app.js so it does not wait on the app
+    // to parse, and so the ?17 version query can never affect whether the
+    // worker registers.
+    if ('serviceWorker' in navigator) {
+      addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {})
+      })
+    }
+  </script>
   <script src="./app.js?17"></script>
 </body>
 </html>

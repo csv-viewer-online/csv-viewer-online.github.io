@@ -48,3 +48,61 @@ test('the head links the manifest, theme colour and apple touch icon', async ({ 
   await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#126BCF')
   await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute('href', '/icons/apple-touch-180.png')
 })
+
+test('the service worker reaches activated', async ({ page }) => {
+  await page.goto('/')
+  // Asserting registration is not enough: if any SHELL entry 404s, install
+  // rejects, the worker never activates, and the site keeps working online
+  // with no offline support and no visible error.
+  const state = await page.evaluate(async () => {
+    const reg = await navigator.serviceWorker.ready
+    // `ready` resolves once `active` is set, which happens at the start of
+    // the activate step (state "activating") — before the activate event's
+    // waitUntil settles into "activated". Wait for the real transition
+    // instead of racing it with a bare read.
+    if (reg.active.state === 'activated') return reg.active.state
+    return new Promise((resolve) => {
+      reg.active.addEventListener('statechange', function onChange() {
+        if (reg.active.state === 'activated') {
+          reg.active.removeEventListener('statechange', onChange)
+          resolve(reg.active.state)
+        }
+      })
+    })
+  })
+  expect(state).toBe('activated')
+})
+
+test('the shell still loads with the network off', async ({ page, context }) => {
+  await page.goto('/')
+  await page.evaluate(() => navigator.serviceWorker.ready)
+  // Without clients.claim the worker does not control the page that
+  // registered it, so offline only works from the second load.
+  await page.reload()
+
+  await context.setOffline(true)
+  await page.reload()
+  await expect(page.locator('.toolbar')).toBeVisible()
+  await expect(page.locator('#drop-zone')).toBeVisible()
+  await context.setOffline(false)
+})
+
+test('the ?17 versioned css and js resolve from cache offline', async ({ page, context }) => {
+  await page.goto('/')
+  await page.evaluate(() => navigator.serviceWorker.ready)
+  await page.reload()
+
+  await context.setOffline(true)
+  await page.reload()
+
+  // index.html asks for ./styles.css?17 but the cache holds ./styles.css.
+  // Without ignoreSearch this misses, and the page renders unstyled offline
+  // while looking perfectly fine online.
+  const applied = await page.evaluate(() => ({
+    sheets: document.styleSheets.length,
+    rows: getComputedStyle(document.body).gridTemplateRows
+  }))
+  expect(applied.sheets, 'styles.css must have resolved from cache').toBeGreaterThan(0)
+  expect(applied.rows, 'the body grid from styles.css must be in effect').not.toBe('none')
+  await context.setOffline(false)
+})
