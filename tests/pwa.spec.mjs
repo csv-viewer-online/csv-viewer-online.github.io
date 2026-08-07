@@ -175,14 +175,21 @@ test('after warming, an installed client opens a file with the network off', asy
     reg.active.postMessage({ type: 'warm-vendor' })
   })
 
-  await page.waitForFunction(
-    async () => {
-      const c = await caches.open('csv-viewer-v1')
-      return !!(await c.match('./vendor/handsontable.full.min.js', { ignoreSearch: true }))
-    },
-    null,
-    { timeout: 30_000 }
-  )
+  // Not page.waitForFunction: it evaluates an async predicate but ignores
+  // its resolved value, resolving as soon as the returned promise settles
+  // regardless of whether that value is truthy. expect.poll re-runs
+  // page.evaluate (which genuinely awaits) from the Node side instead, so
+  // this actually gates on the cache entry existing.
+  await expect
+    .poll(
+      async () =>
+        page.evaluate(async () => {
+          const c = await caches.open('csv-viewer-v1')
+          return !!(await c.match('./vendor/handsontable.full.min.js', { ignoreSearch: true }))
+        }),
+      { timeout: 30_000 }
+    )
+    .toBe(true)
 
   await page.reload()
   await context.setOffline(true)
