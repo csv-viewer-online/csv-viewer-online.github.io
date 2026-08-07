@@ -106,3 +106,43 @@ test('the ?17 versioned css and js resolve from cache offline', async ({ page, c
   expect(applied.rows, 'the body grid from styles.css must be in effect').not.toBe('none')
   await context.setOffline(false)
 })
+
+test('a refreshed shell asset replaces the stale offline copy, not just the online response', async ({
+  page,
+  context
+}) => {
+  await page.goto('/')
+  await page.evaluate(() => navigator.serviceWorker.ready)
+  // Without clients.claim the worker does not control the page that
+  // registered it, so the interception below only takes effect from the
+  // second load.
+  await page.reload()
+
+  // Stand in for a real deploy that changes styles.css without touching
+  // sw.js. context.route (not page.route) is required: this request is made
+  // by the service worker's own fetch() call during networkFirst, not by the
+  // page, so page.route never observes it.
+  await context.route('**/styles.css*', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'text/css; charset=utf-8',
+      body: 'body { background-color: rgb(1, 2, 3); }'
+    })
+  )
+
+  // Online reload: networkFirst fetches the new bytes and must refresh the
+  // single cache entry for styles.css, not add a second one alongside the
+  // install-time copy from addAll.
+  await page.reload()
+  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(1, 2, 3)')
+  await context.unroute('**/styles.css*')
+
+  // Offline reload: the cache must now serve the NEW bytes. If cache.put had
+  // keyed on the queried request (./styles.css?17) instead of the bare path,
+  // two entries would exist and ignoreSearch's first match — the stale
+  // install-time one — would win forever.
+  await context.setOffline(true)
+  await page.reload()
+  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(1, 2, 3)')
+  await context.setOffline(false)
+})

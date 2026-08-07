@@ -57,12 +57,20 @@ self.addEventListener('activate', (e) => {
 
 const isImmutable = (url) => url.pathname.includes('/vendor/') || url.pathname.includes('/icons/')
 
+// Key on the path alone: index.html asks for styles.css?17 but the precache
+// holds styles.css, and ignoreSearch returns the FIRST match — so an
+// un-normalised put would leave the stale install-time copy winning forever.
+const cacheKey = (request) => {
+  const url = new URL(request.url)
+  return url.origin + url.pathname
+}
+
 async function cacheFirst(request) {
   const cache = await caches.open(CACHE)
   const hit = await cache.match(request, { ignoreSearch: true })
   if (hit) return hit
   const res = await fetch(request)
-  if (res.ok) await cache.put(request, res.clone())
+  if (res.ok) await cache.put(cacheKey(request), res.clone())
   return res
 }
 
@@ -73,7 +81,7 @@ async function networkFirst(request) {
   try {
     const res = await fetch(request, { signal: controller.signal })
     clearTimeout(timer)
-    if (res.ok) await cache.put(request, res.clone())
+    if (res.ok) await cache.put(cacheKey(request), res.clone())
     return res
   } catch (err) {
     clearTimeout(timer)
