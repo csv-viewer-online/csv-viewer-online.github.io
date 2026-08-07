@@ -1,0 +1,18 @@
+{
+  "name": "CSV Viewer & Editor Online",
+  "short_name": "CSV Viewer",
+  "description": "Open, edit, sort and search CSV files. Nothing is uploaded — your file is parsed on your own device.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#126BCF",
+  "background_color": "#126BCF",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "file_handlers": [
+    { "action": "/", "accept": { "text/csv": [".csv"] } }
+  ]
+}
