@@ -35,6 +35,24 @@ Handsontable runs under its free non-commercial licence
 | Caching strategy | Split by mutability (see below) |
 | Optional capability | OS file handling for `.csv`; no share target, no shortcuts |
 | Icons | Generated from `favicon.svg`, with a padded maskable variant |
+| Precache scope | Shell for everyone; `vendor/` only for installed users |
+
+### Why `vendor/` is precached only for installed users
+
+Precaching 1.6 MB at install would undo the deferral in `app.js:78` — the grid
+is fetched on first file open specifically so a page view does not pay for it,
+a saving `smoke.spec.mjs` guards as "92% of what page weight used to be".
+
+Offline-on-first-open and lazy-loading the grid cannot both hold for the same
+visitor. They are split by who actually needs offline:
+
+- **Browser tab:** shell is cached, `vendor/` is not. Page weight and the lazy
+  grid load are exactly as they are today.
+- **Installed app** (`display-mode: standalone`): the page tells the worker to
+  warm `vendor/` in the background on launch, so offline works fully.
+
+Someone who installed the app asked for an app. Someone who opened a tab did
+not, and should not pay 1.6 MB for a promise they never made.
 
 ### Why vendoring rather than caching the CDN
 
@@ -108,7 +126,7 @@ can never affect whether the worker registers.
 No `skipWaiting`, no `clients.claim`.
 
 ```
-install  → precache everything, then wait
+install  → precache SHELL only, then wait
 activate → delete caches whose name differs from the current one, then take over
 ```
 
@@ -118,7 +136,8 @@ added in #50. This is why auto-reload was rejected.
 
 ### Precache list
 
-Exact, since a single wrong entry fails the whole install:
+Two lists. `SHELL` is precached at install for everyone; a wrong entry here
+fails the whole install:
 
 ```
 ./                                     navigation fallback
@@ -127,17 +146,35 @@ Exact, since a single wrong entry fails the whole install:
 ./app.js
 ./favicon.svg
 ./manifest.webmanifest
-./vendor/handsontable.full.min.js
-./vendor/handsontable.full.min.css
-./vendor/papaparse.min.js
 ./icons/icon-192.png
 ./icons/icon-512.png
 ./icons/icon-512-maskable.png
 ./icons/apple-touch-180.png
 ```
 
+`VENDOR` is warmed only on request from an installed client, never at install:
+
+```
+./vendor/handsontable.full.min.js
+./vendor/handsontable.full.min.css
+./vendor/papaparse.min.js
+```
+
 Entries are stored without the `?17` query that `index.html` uses, which is why
 every lookup needs `ignoreSearch` (see Edge cases).
+
+### Warming `vendor/` from an installed client
+
+`index.html` checks `matchMedia('(display-mode: standalone)')` after load and,
+when it matches, posts to the active worker:
+
+```js
+navigator.serviceWorker.controller?.postMessage({ type: 'warm-vendor' })
+```
+
+The worker handles `message` by adding `VENDOR` to the cache. Failures are
+swallowed: a warm that does not finish leaves the app exactly as capable as a
+browser tab, which is the status quo, not a regression.
 
 ### Routing
 
@@ -171,7 +208,7 @@ test.
 control the page that registered it. Offline works from the second load. The
 offline test must load the page twice.
 
-**A failed install is silent.** If any precache entry 404s, `install` rejects
+**A failed install is silent.** If any `SHELL` entry 404s, `install` rejects
 and the worker never activates; the site keeps working online with no offline
 support and no visible error. The test asserts the worker reaches `activated`,
 not merely that it registered.
@@ -243,24 +280,53 @@ reproducibility, not automation.
 ## Vendored file provenance
 
 The vendored files are fetched from jsdelivr at the versions currently pinned in
-`app.js` (`handsontable@13`, `papaparse@5`). `vendor/README.md` records the
-resolved exact versions and the SHA-256 of each file, so a future bump is a
-diffable, checkable operation rather than an opaque blob swap.
+`app.js` (`handsontable@13`, `papaparse@5`), which resolve to:
+
+| Package | Resolved |
+|---|---|
+| handsontable | **13.1.0** |
+| papaparse | **5.5.4** |
+
+`vendor/README.md` records these exact versions and the SHA-256 of each file, so
+a future bump is a diffable, checkable operation rather than an opaque blob
+swap.
 
 ## Testing
 
-`tests/pwa.spec.mjs`, five tests, each targeting a specific failure mode:
+`tests/pwa.spec.mjs`, six tests, each targeting a specific failure mode:
 
 | Test | Catches |
 |---|---|
 | Manifest parses; required fields and three icons present | Typos, missing icon files |
-| Worker reaches `activated` | A 404 in the precache list |
+| Worker reaches `activated` | A 404 in the `SHELL` precache list |
 | Reload twice, go offline, page still loads | Broken offline shell |
-| Offline, open a CSV, grid renders | Vendored deps unreachable offline |
+| A plain tab does **not** fetch `vendor/` on page view | The precache regressing the lazy load |
+| After a `warm-vendor` message, offline open renders the grid | Vendored deps unreachable offline |
 | Offline load with `?17` on css/js | The `ignoreSearch` trap |
 
-The fourth is the one that would have caught the original CDN problem, and is
-the test that matters most.
+The fifth is the one that would have caught the original CDN problem, and is the
+test that matters most. The fourth is what keeps this change from silently
+undoing the page-weight work.
+
+The installed case is simulated by posting `warm-vendor` directly rather than by
+faking `display-mode: standalone`, which Playwright cannot set reliably. The
+media-query branch itself is covered by asserting a plain tab never warms.
+
+### Two existing tests must change
+
+**`smoke.spec.mjs` — "a failed grid fetch shows an error and recovers on
+retry"** routes `**cdn.jsdelivr.net**` and aborts it. After vendoring, no such
+request exists, the abort never fires, and the test passes for the wrong reason.
+It must route `**/vendor/handsontable*` instead.
+
+**`playwright.config.mjs`** comments state that opening a file "pulls ~1.7 MB
+from a CDN" and that "the grid loads from jsdelivr, so a flake is a network
+flake". Both become false. The `timeout` and `retries` values stay as they are;
+only the reasoning changes.
+
+`smoke.spec.mjs` — "the grid is not downloaded until a file is opened" is
+deliberately left **unchanged**. It must keep passing, and is the reason
+`vendor/` is not in the install-time precache.
 
 `tests/serve.mjs` must serve `.webmanifest` as `application/manifest+json`;
 without it the manifest is `application/octet-stream` and the browser rejects
@@ -269,17 +335,20 @@ it, failing tests confusingly.
 ## Out of scope
 
 No offline fallback page, no "you are offline" banner, no background sync, no
-cache-size management, no share target, no manifest shortcuts. The app precaches
-1.6 MB and genuinely works offline — there is nothing for a fallback page to
-say.
+cache-size management, no share target, no manifest shortcuts. The installed app
+caches 1.6 MB and genuinely works offline — there is nothing for a fallback page
+to say. A plain tab offline behaves as it does today.
 
 ## Success criteria
 
 1. Chrome and Edge offer to install the site.
-2. With the network disabled, a fresh launch opens, loads a CSV, renders the
-   grid, sorts, searches, edits and downloads.
-3. That works on a profile that has never opened a file while online.
-4. `bun run test` passes, including the five new tests.
-5. No request to `cdn.jsdelivr.net` is made at any point.
-6. A deploy reaches an installed client on its next fresh launch, with no
+2. With the network disabled, a fresh launch of the **installed app** opens,
+   loads a CSV, renders the grid, sorts, searches, edits and downloads.
+3. That works on a profile that has never opened a file while online — the warm
+   on first launch is what makes this true.
+4. A plain browser tab still loads ~56 KB and still fetches the grid only when a
+   file is opened.
+5. `bun run test` passes, including the six new tests and the two amended ones.
+6. No request to `cdn.jsdelivr.net` is made at any point.
+7. A deploy reaches an installed client on its next fresh launch, with no
    version constant bumped by hand.
