@@ -90,7 +90,7 @@ drag-and-drop, the clipboard, grid rendering.
 ```sh
 bun install
 bunx playwright install chromium
-bun run test          # 85 tests
+bun run test          # 130 tests
 bun run test:headed   # watch them run
 bun run test:ui       # interactive
 ```
@@ -103,6 +103,11 @@ bun run test:ui       # interactive
 | `smoke.spec.mjs` | layout at three widths, lazy loading, search, head tags, static files |
 | `sponsor-dialog.spec.mjs` | the enquiry dialog |
 | `branding.spec.mjs` | naming, and that "CSV Viewer" stays the leading phrase |
+| `edits.spec.mjs` | which cells get marked edited, clearing on undo or a matching retype, and the marker surviving sort, search and a download |
+| `edits-indicator.spec.mjs` | the edit count, its undo hint and Revert all, and that a new file resets it |
+| `discard-guard.spec.mjs` | confirming before the logo discards unsaved edits |
+| `download-button.spec.mjs` | the green Download button's contrast, icon, accessible name and menu |
+| `pwa.spec.mjs` | manifest and icons, service worker activation, the offline shell, the tab-versus-installed precache split, and OS file launches |
 
 Fixtures are generated into a temp directory rather than committed, and the
 suite asserts their bytes really are in the encoding they claim — a fixture
