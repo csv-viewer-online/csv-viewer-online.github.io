@@ -174,7 +174,9 @@ test('search filters, focuses with / and clears with Escape', async ({ page }) =
 
 test('a failed grid fetch shows an error and recovers on retry', async ({ page }) => {
   let blocked = true
-  await page.route('**cdn.jsdelivr.net**', (route) => (blocked ? route.abort() : route.continue()))
+  // The grid is vendored now, so the failure to simulate is a local fetch
+  // failing — a corrupt cache or a bad deploy — not a CDN outage.
+  await page.route('**/vendor/handsontable*', (route) => (blocked ? route.abort() : route.continue()))
 
   await page.goto('/')
   await page.setInputFiles('#input-file', paths['plain.csv'])

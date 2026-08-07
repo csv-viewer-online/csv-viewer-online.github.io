@@ -76,11 +76,14 @@ const fmt = (n) => n.toLocaleString('en-US')
 
 // The grid is ~1.6 MB and the parser is only needed once a file is chosen,
 // so both are fetched on first open instead of on every page view.
-const CDN = 'https://cdn.jsdelivr.net/npm/'
+//
+// Served from vendor/ rather than a CDN so the installed app works with no
+// network at all. Versions and checksums are recorded in vendor/README.md.
+const VENDOR = './vendor/'
 const DEPS = [
-  { tag: 'link', url: CDN + 'handsontable@13/dist/handsontable.full.min.css' },
-  { tag: 'script', url: CDN + 'handsontable@13/dist/handsontable.full.min.js' },
-  { tag: 'script', url: CDN + 'papaparse@5' }
+  { tag: 'link', url: VENDOR + 'handsontable.full.min.css' },
+  { tag: 'script', url: VENDOR + 'handsontable.full.min.js' },
+  { tag: 'script', url: VENDOR + 'papaparse.min.js' }
 ]
 
 let depsPromise = null
