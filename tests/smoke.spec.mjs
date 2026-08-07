@@ -97,10 +97,13 @@ test.describe('empty state', () => {
   }
 })
 
-test('the grid is not downloaded until a file is opened', async ({ page }) => {
+test('the grid is not downloaded until a file is opened', async ({ page, context }) => {
   // Guards the 1.67 MB deferral: this is 92% of what page weight used to be.
   const requested = []
-  page.on('request', (r) => requested.push(r.url()))
+  // context, not page: page.on('request') is blind to service-worker-initiated
+  // fetches, so a precache regression would go unseen. Verified by putting
+  // vendor/ into SHELL — the page-scoped listener still reported clean.
+  context.on('request', (r) => requested.push(r.url()))
   await page.goto('/')
   await page.waitForLoadState('networkidle')
 
@@ -174,7 +177,9 @@ test('search filters, focuses with / and clears with Escape', async ({ page }) =
 
 test('a failed grid fetch shows an error and recovers on retry', async ({ page }) => {
   let blocked = true
-  await page.route('**cdn.jsdelivr.net**', (route) => (blocked ? route.abort() : route.continue()))
+  // The grid is vendored now, so the failure to simulate is a local fetch
+  // failing — a corrupt cache or a bad deploy — not a CDN outage.
+  await page.route('**/vendor/handsontable*', (route) => (blocked ? route.abort() : route.continue()))
 
   await page.goto('/')
   await page.setInputFiles('#input-file', paths['plain.csv'])

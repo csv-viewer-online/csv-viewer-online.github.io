@@ -7,6 +7,19 @@ uploaded: the file is read straight from disk by the page you already have
 open, parsed in memory, and drawn on screen. No account, nothing to delete
 afterwards, and no upload request carrying your data.
 
+## Install it
+
+The site is a PWA. Chrome and Edge offer an install button in the address
+bar; on iOS use Share → Add to Home Screen.
+
+Installed, it works with no network at all — the grid and parser are cached
+on first launch. A browser tab deliberately does not preload them, so opening
+the site in a tab stays as light as it has always been; they are still only
+fetched, and cached, once a file is actually opened.
+
+Installed on desktop Chrome or Edge, it also registers as a handler for
+`.csv`, so you can open one straight from Finder or Explorer.
+
 ## What it does
 
 - **Commas, semicolons, tabs and pipes** — the separator is detected
@@ -33,24 +46,30 @@ and `.txt` are offered in the picker, and any dropped file is attempted.
 
 ## How it is built
 
-Plain HTML, CSS and JavaScript with **no build step**. The whole site is three
+Plain HTML, CSS and JavaScript with **no build step**. The whole site is four
 files plus static assets:
 
 ```
 index.html      markup and <head>
 styles.css      all styling
 app.js          parsing, the grid, search, export
+sw.js           service worker: caches the shell, warms vendor/ when installed
 ```
 
-Two libraries do the heavy lifting, both loaded from a CDN:
+Two libraries do the heavy lifting, vendored into `vendor/` rather than
+loaded from a CDN — pinned versions and checksums are in
+[`vendor/README.md`](vendor/README.md). Vendoring means the site depends on
+nothing but its own origin at runtime, which is what makes the offline
+install described in [Install it](#install-it) possible:
 
 - [PapaParse](https://github.com/mholt/PapaParse) — CSV parsing
 - [Handsontable](https://github.com/handsontable/handsontable) — the grid
 
-They are **fetched on first file open rather than on page load**. Handsontable
-alone is ~1.6 MB, which was 92% of the page weight and wasted on every visit
-where nobody opened a file. Deferring it takes the initial load from ~1,826 KB
-to ~106 KB.
+In a browser tab they are still **fetched on first file open rather than on
+page load**. Handsontable alone is ~1.6 MB, which was 92% of the page weight
+and wasted on every visit where nobody opened a file. Deferring it takes the
+initial load from ~1,826 KB to ~106 KB. An installed client instead warms
+both into the cache at launch, as Install it describes.
 
 ## Development
 
@@ -72,7 +91,7 @@ drag-and-drop, the clipboard, grid rendering.
 ```sh
 bun install
 bunx playwright install chromium
-bun run test          # 85 tests
+bun run test          # 130 tests
 bun run test:headed   # watch them run
 bun run test:ui       # interactive
 ```
@@ -85,6 +104,11 @@ bun run test:ui       # interactive
 | `smoke.spec.mjs` | layout at three widths, lazy loading, search, head tags, static files |
 | `sponsor-dialog.spec.mjs` | the enquiry dialog |
 | `branding.spec.mjs` | naming, and that "CSV Viewer" stays the leading phrase |
+| `edits.spec.mjs` | which cells get marked edited, clearing on undo or a matching retype, and the marker surviving sort, search and a download |
+| `edits-indicator.spec.mjs` | the edit count, its undo hint and Revert all, and that a new file resets it |
+| `discard-guard.spec.mjs` | confirming before the logo discards unsaved edits |
+| `download-button.spec.mjs` | the green Download button's contrast, icon, accessible name and menu |
+| `pwa.spec.mjs` | manifest and icons, service worker activation, the offline shell, the tab-versus-installed precache split, and OS file launches |
 
 Fixtures are generated into a temp directory rather than committed, and the
 suite asserts their bytes really are in the encoding they claim — a fixture

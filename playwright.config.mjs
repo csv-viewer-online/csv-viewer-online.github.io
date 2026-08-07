@@ -7,12 +7,14 @@ const PORT = Number(process.env.PORT || 4319)
 
 export default defineConfig({
   testDir: './tests',
-  // Opening a file pulls ~1.7 MB from a CDN, so allow for a slow network
+  // Opening a file pulls ~1.7 MB of vendored grid off the test server, and the
+  // offline specs wait on service worker installs, so keep the budget generous
   timeout: 45_000,
   expect: { timeout: 10_000 },
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  // The grid loads from jsdelivr, so a flake is a network flake, not a bug
+  // Service worker registration and cache writes are the flaky part now that
+  // nothing is fetched from a third party
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 2 : undefined,
   reporter: process.env.CI ? [['github'], ['list']] : [['list']],

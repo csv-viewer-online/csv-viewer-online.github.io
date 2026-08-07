@@ -9,6 +9,9 @@
   <!-- Search Console ownership proof. Removing this un-verifies the site. -->
   <meta name="google-site-verification" content="8aw1LwNMMXqelv3hKf9xP8h0Ok7Z02M8rvTzjny7oDw">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#126BCF">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-180.png">
 
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="CSV Viewer &amp; Editor Online">
@@ -34,10 +37,7 @@
     "description": "View, edit, sort and search CSV files in your browser. Files are parsed locally and never uploaded."
   }
   </script>
-  <link rel="stylesheet" href="./styles.css?17">
-  <!-- The grid and parser are fetched on first file open (see app.js), so
-       warm the connection now rather than paying for it then. -->
-  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="stylesheet" href="./styles.css?18">
   <script defer src="https://analytics.limonte.dev/script.js" data-website-id="980b9c4c-d922-4759-91af-dc5d6a129f57"></script>
 </head>
 
@@ -242,6 +242,24 @@
     <a class="btn dialog-mail" href="mailto:csv-viewer-online@tianon.anonaddy.me?subject=Advertising on CSV Viewer">Open in mail app</a>
   </dialog>
 
-  <script src="./app.js?17"></script>
+  <script>
+    // Registered inline rather than from app.js so it does not wait on the app
+    // to parse, and so the ?17 version query can never affect whether the
+    // worker registers.
+    if ('serviceWorker' in navigator) {
+      addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').then(async () => {
+          // Only an installed app pays for the 1.6 MB grid up front. A browser
+          // tab keeps today's page weight and fetches it on first file open.
+          if (!matchMedia('(display-mode: standalone)').matches) return
+          const reg = await navigator.serviceWorker.ready
+          // reg.active rather than .controller: on a first launch the page is
+          // not yet controlled, which is exactly when warming matters most.
+          if (reg.active) reg.active.postMessage({ type: 'warm-vendor' })
+        }).catch(() => {})
+      })
+    }
+  </script>
+  <script src="./app.js?18"></script>
 </body>
 </html>

@@ -76,11 +76,14 @@ const fmt = (n) => n.toLocaleString('en-US')
 
 // The grid is ~1.6 MB and the parser is only needed once a file is chosen,
 // so both are fetched on first open instead of on every page view.
-const CDN = 'https://cdn.jsdelivr.net/npm/'
+//
+// Served from vendor/ rather than a CDN so the installed app works with no
+// network at all. Versions and checksums are recorded in vendor/README.md.
+const VENDOR = './vendor/'
 const DEPS = [
-  { tag: 'link', url: CDN + 'handsontable@13/dist/handsontable.full.min.css' },
-  { tag: 'script', url: CDN + 'handsontable@13/dist/handsontable.full.min.js' },
-  { tag: 'script', url: CDN + 'papaparse@5' }
+  { tag: 'link', url: VENDOR + 'handsontable.full.min.css' },
+  { tag: 'script', url: VENDOR + 'handsontable.full.min.js' },
+  { tag: 'script', url: VENDOR + 'papaparse.min.js' }
 ]
 
 let depsPromise = null
@@ -573,5 +576,59 @@ window.addEventListener('drop', (e) => {
     ? `Opened ${files[0].name}. Only one file can be viewed at a time.`
     : '')
 })
+
+/* Opening a .csv from Finder or Explorer, for an installed app registered as a
+   handler for the type (see file_handlers in manifest.webmanifest).
+
+   The handle is a FileSystemFileHandle rather than a File, so it needs
+   getFile(). Chromium desktop only; feature-detected so it is inert elsewhere.
+
+   No discard confirmation here on purpose. The guard added for the wordmark is
+   not on the other two entry points either — both input.onchange and the drop
+   handler replace the open file without asking — and making OS-launch the one
+   strict path would be an inconsistency, not an improvement. Guarding all
+   three belongs in its own change.
+
+   Otherwise this mirrors the drop handler on purpose: multiple files hand
+   the same "only one shown" notice rather than silently dropping the extras,
+   and a failed getFile() — the file was moved, deleted, or its permission
+   was revoked between the OS launch and consumption — surfaces rather than
+   rejecting into the void. The native LaunchQueue that calls this function
+   attaches no rejection handler, so an uncaught throw here would leave the
+   user looking at an unchanged page with no sign the double-click did
+   anything. Where that surfaces depends on state: the empty state uses the
+   same load-error / dropStatus path loadFile's own catch uses, but once a
+   file is already open that element is hidden, so showNotice is used
+   instead — see the catch below. */
+async function openLaunchedFiles({ files }) {
+  if (!files || !files.length) return
+
+  let file
+  try {
+    file = await files[0].getFile()
+  } catch (err) {
+    console.error('csv-viewer: launch failed', err)
+    // #drop-status lives inside .empty, which body.loaded hides — so once a
+    // file is already open, writing there is invisible. showNotice sits
+    // outside .empty and is what the loaded state uses to surface problems,
+    // and the loaded class itself must stay put: the user's current data is
+    // still good and should not vanish because a second launch failed.
+    if (document.body.classList.contains('loaded')) {
+      showNotice('Could not open that file. It may have been moved or deleted.', 'error')
+    } else {
+      document.body.classList.add('load-error')
+      dropStatus.textContent = 'Could not open that file. It may have been moved or deleted.'
+    }
+    return
+  }
+
+  loadFile(file, files.length > 1
+    ? `Opened ${file.name}. Only one file can be viewed at a time.`
+    : '')
+}
+
+if ('launchQueue' in window) {
+  window.launchQueue.setConsumer(openLaunchedFiles)
+}
 
 document.getElementById('notice-dismiss').addEventListener('click', hideNotice)
