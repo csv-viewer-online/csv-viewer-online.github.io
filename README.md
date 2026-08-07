@@ -45,24 +45,30 @@ and `.txt` are offered in the picker, and any dropped file is attempted.
 
 ## How it is built
 
-Plain HTML, CSS and JavaScript with **no build step**. The whole site is three
+Plain HTML, CSS and JavaScript with **no build step**. The whole site is four
 files plus static assets:
 
 ```
 index.html      markup and <head>
 styles.css      all styling
 app.js          parsing, the grid, search, export
+sw.js           service worker: caches the shell, warms vendor/ when installed
 ```
 
-Two libraries do the heavy lifting, both loaded from a CDN:
+Two libraries do the heavy lifting, vendored into `vendor/` rather than
+loaded from a CDN — pinned versions and checksums are in
+[`vendor/README.md`](vendor/README.md). Vendoring means the site depends on
+nothing but its own origin at runtime, which is what makes the offline
+install described in [Install it](#install-it) possible:
 
 - [PapaParse](https://github.com/mholt/PapaParse) — CSV parsing
 - [Handsontable](https://github.com/handsontable/handsontable) — the grid
 
-They are **fetched on first file open rather than on page load**. Handsontable
-alone is ~1.6 MB, which was 92% of the page weight and wasted on every visit
-where nobody opened a file. Deferring it takes the initial load from ~1,826 KB
-to ~106 KB.
+In a browser tab they are still **fetched on first file open rather than on
+page load**. Handsontable alone is ~1.6 MB, which was 92% of the page weight
+and wasted on every visit where nobody opened a file. Deferring it takes the
+initial load from ~1,826 KB to ~106 KB. An installed client instead warms
+both into the cache at launch, as Install it describes.
 
 ## Development
 
