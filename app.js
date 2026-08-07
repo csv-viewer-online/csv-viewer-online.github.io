@@ -577,4 +577,24 @@ window.addEventListener('drop', (e) => {
     : '')
 })
 
+/* Opening a .csv from Finder or Explorer, for an installed app registered as a
+   handler for the type (see file_handlers in manifest.webmanifest).
+
+   The handle is a FileSystemFileHandle rather than a File, so it needs
+   getFile(). Chromium desktop only; feature-detected so it is inert elsewhere.
+
+   No discard confirmation here on purpose. The guard added for the wordmark is
+   not on the other two entry points either — both input.onchange and the drop
+   handler replace the open file without asking — and making OS-launch the one
+   strict path would be an inconsistency, not an improvement. Guarding all
+   three belongs in its own change. */
+async function openLaunchedFiles({ files }) {
+  if (!files || !files.length) return
+  loadFile(await files[0].getFile())
+}
+
+if ('launchQueue' in window) {
+  window.launchQueue.setConsumer(openLaunchedFiles)
+}
+
 document.getElementById('notice-dismiss').addEventListener('click', hideNotice)

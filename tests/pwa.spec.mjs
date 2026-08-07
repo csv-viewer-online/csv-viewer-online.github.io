@@ -204,3 +204,49 @@ test('after warming, an installed client opens a file with the network off', asy
 
   await context.setOffline(false)
 })
+
+test('a file handed over by the OS launch queue is opened', async ({ page }) => {
+  // launchQueue only exists when the OS actually launched the app. Rather than
+  // exposing the consumer for tests, stand up a stub before load so app.js's
+  // real feature-detect branch runs and registers against it — the
+  // registration path is then covered too, not bypassed.
+  //
+  // Object.defineProperty, not a plain assignment: modern Chromium exposes
+  // window.launchQueue as a readonly (getter-only) property on every page,
+  // installed or not. A plain `window.launchQueue = {...}` silently no-ops
+  // against an accessor with no setter, so the real (inert) LaunchQueue would
+  // still be what app.js registers against, and __fire would never be set.
+  // The property is configurable, so defineProperty can still replace it.
+  await page.addInitScript(() => {
+    Object.defineProperty(window, 'launchQueue', {
+      value: { setConsumer: (fn) => { window.__fire = fn } },
+      configurable: true,
+      writable: true
+    })
+  })
+  await page.goto('/')
+
+  await page.evaluate(async () => {
+    const csv = 'name,city\nAcme,Berlin\nGlobex,Tokyo\n'
+    const handle = { getFile: async () => new File([csv], 'launched.csv', { type: 'text/csv' }) }
+    await window.__fire({ files: [handle] })
+  })
+
+  await expect(page.locator('body')).toHaveClass(/loaded/)
+  await expect(page.locator('#file-name')).toHaveText('launched.csv')
+  await expect(page.locator('#handsontable-container .ht_master tbody tr')).toHaveCount(2)
+})
+
+test('the page still works where launchQueue does not exist', async ({ page }) => {
+  // Chromium always has launchQueue, so the absent-API branch — Firefox and
+  // Safari — is only reachable by removing it. Without this the test would
+  // pass with the feature detection deleted entirely.
+  await page.addInitScript(() => { delete window.launchQueue })
+
+  const errors = []
+  page.on('pageerror', (e) => errors.push(e.message))
+  await page.goto('/')
+
+  await expect(page.locator('#drop-zone')).toBeVisible()
+  expect(errors).toEqual([])
+})
