@@ -9,8 +9,18 @@ afterwards, and no upload request carrying your data.
 
 ## Install it
 
-The site is a PWA. Chrome and Edge offer an install button in the address
-bar; on iOS use Share → Add to Home Screen.
+The site is a PWA, so it installs like an application and then runs with no
+connection at all. Nothing to download from a store, and no account.
+
+| Browser | How |
+| --- | --- |
+| **Chrome, Edge** (desktop) | Click the install icon in the address bar, or pick **Install** from the browser menu |
+| **Chrome** (Android) | Menu → **Add to Home screen** |
+| **Safari** (iOS, iPadOS) | Share → **Add to Home Screen** |
+| **Safari** (macOS 14+) | **File** → **Add to Dock** |
+
+Firefox has no install prompt on desktop; the site works normally in a tab
+there.
 
 Installed, it works with no network at all — the grid and parser are cached
 on first launch. A browser tab deliberately does not preload them, so opening
@@ -18,7 +28,12 @@ the site in a tab stays as light as it has always been; they are still only
 fetched, and cached, once a file is actually opened.
 
 Installed on desktop Chrome or Edge, it also registers as a handler for
-`.csv`, so you can open one straight from Finder or Explorer.
+`.csv`, so you can open one straight from Finder or Explorer. If the OS does
+not offer it, launch the installed app once first — handlers are registered on
+first run.
+
+To uninstall, open the app and use its menu → **Uninstall**, or remove it from
+`chrome://apps`. Uninstalling clears its cached copy of the site.
 
 ## What it does
 

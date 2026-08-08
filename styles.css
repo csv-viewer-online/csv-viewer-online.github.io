@@ -500,7 +500,10 @@ body.load-error .scroll-cue {
   color: var(--prose);
 }
 
-.content ul {
+/* ol as well as ul: the How it works steps are sequential, so they are
+   numbered rather than bulleted, and need the same indent and rhythm. */
+.content ul,
+.content ol {
   margin: 12px 0 0;
   padding-left: 20px;
 }
