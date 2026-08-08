@@ -121,13 +121,23 @@
       </div>
 
         <p class="drop-status" id="drop-status" role="status" aria-live="polite"></p>
-        <a class="scroll-cue" href="#about">How it works</a>
+        <a class="scroll-cue" href="#how-it-works">How it works</a>
       </div>
 
       <article class="content" id="about">
         <h2>Read and edit a CSV without handing it to anyone</h2>
         <p>Most online CSV tools ask you to upload your file to a server before you can look at it. A copy of your spreadsheet — customer records, a bank export, whatever it happens to be — then lives on someone else's machine, under their retention policy rather than yours.</p>
         <p>This page does the work in your browser instead. When you pick a file it is read straight from disk by the tab you already have open, parsed in memory, and drawn on screen. There is no account, nothing to delete afterwards, and no upload request carrying your data. You can check that yourself: open your browser's network panel and watch it while you open a file.</p>
+
+        <h2 id="how-it-works">How it works</h2>
+        <ol>
+          <li><strong>You pick a file.</strong> Drop it on the page, or browse for it. Nothing is sent anywhere at this point — the file is simply handed to the tab.</li>
+          <li><strong>It is read and parsed on your device.</strong> The separator and the character encoding are worked out from the bytes themselves, so semicolon exports from Excel and non-UTF-8 files open without a setting to change.</li>
+          <li><strong>The rows are drawn on screen.</strong> Only the rows in view are rendered, which is why a file with tens of thousands of them still scrolls. Sorting, searching and editing all happen in memory.</li>
+          <li><strong>You download what you see.</strong> Your edits, your sort order and only the rows matching your search are written to a new file. The original is never modified.</li>
+        </ol>
+        <p>Because every step happens in the tab, there is no server to trust and no copy of your data to delete afterwards.</p>
+        <p>You can also <strong>install it</strong>. Chrome and Edge show an install button in the address bar; on iPhone and iPad use Share → Add to Home Screen. Installed, the viewer itself is stored on your device, so it opens and reads files with no connection at all — and on desktop it can open a .csv straight from Finder or Explorer.</p>
 
         <h2>What it handles</h2>
         <ul>
@@ -153,7 +163,7 @@
         <p>You can type into cells, and <strong>Download</strong> saves what is on screen as a new CSV or JSON file — including your edits, the sort order you chose, and only the rows matching your search. Your original file is never touched; nothing is written back to it, and closing the tab discards anything you have not downloaded.</p>
 
         <h3>Does it work offline?</h3>
-        <p>Not at the moment. The grid and the CSV parser are fetched from a CDN when the page loads, so the first load needs a connection. Reading your file, once the page is open, does not.</p>
+        <p>Yes, once you install it — see <a href="#how-it-works">How it works</a>. The installed app keeps everything it needs on your device, so it opens and reads files with no connection. In an ordinary browser tab the page itself still has to load first; after that, reading your file needs no network either way.</p>
 
         <h3>What does it cost?</h3>
         <p>Nothing — it is free to use. The sponsor tiles on this page are paid placements.</p>

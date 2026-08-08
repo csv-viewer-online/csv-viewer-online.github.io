@@ -332,3 +332,31 @@ test('a rejecting getFile() from the OS launch is still visible when a file is a
   await expect(page.locator('#notice')).toBeVisible()
   await expect(page.locator('#notice-text')).toHaveText('Could not open that file. It may have been moved or deleted.')
 })
+
+test('the page does not tell readers offline is unsupported', async ({ page }) => {
+  await page.goto('/')
+  const prose = await page.locator('.content').innerText()
+
+  // This is not hypothetical: for several commits after the PWA shipped, the
+  // "Does it work offline?" answer still read "Not at the moment. The grid and
+  // the CSV parser are fetched from a CDN" — prose flatly contradicting the
+  // feature, on the live site, past a full review. Same shape of guard as
+  // export.spec.mjs's "no longer claims there is no export".
+  expect(prose).not.toMatch(/not at the moment/i)
+  expect(prose, 'the libraries are vendored, not on a CDN').not.toMatch(/from a CDN/i)
+  expect(prose, 'the offline answer must point at installing').toMatch(/install/i)
+})
+
+test('the "How it works" cue lands on a heading of that name', async ({ page }) => {
+  await page.goto('/')
+  const cue = page.locator('.scroll-cue')
+  const label = (await cue.innerText()).trim()
+  const href = await cue.getAttribute('href')
+
+  // The cue said "How it works" while pointing at #about, whose first heading
+  // is "Read and edit a CSV without handing it to anyone" — a label promising
+  // a section that did not exist. Assert the destination against the cue's own
+  // text so the two cannot drift apart again.
+  expect(href).toMatch(/^#./)
+  await expect(page.locator(href)).toHaveText(label)
+})
