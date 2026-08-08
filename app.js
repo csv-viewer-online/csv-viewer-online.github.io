@@ -616,6 +616,11 @@ async function openLaunchedFiles({ files }) {
     if (document.body.classList.contains('loaded')) {
       showNotice('Could not open that file. It may have been moved or deleted.', 'error')
     } else {
+      // loadFile hides the notice before it does anything, so its own catch
+      // never has a stale one to worry about. This path never reaches
+      // loadFile, so it has to clear it here or an unrelated older message
+      // sits above the new error.
+      hideNotice()
       document.body.classList.add('load-error')
       dropStatus.textContent = 'Could not open that file. It may have been moved or deleted.'
     }

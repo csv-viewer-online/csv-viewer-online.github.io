@@ -57,17 +57,27 @@ self.addEventListener('activate', (e) => {
 // fresh launch rather than mid-session, so it can never reload a page holding
 // unsaved edits.
 
+// addAll always goes to the network — a worker's own fetches do not re-enter
+// its fetch handler, so nothing consults the cache on its behalf. Without this
+// check every launch would refetch 1.6 MB on a feature whose whole point is
+// not spending it. Still addAll rather than individual puts, for the subset
+// that is missing: it is atomic, so a warm cut short cannot leave the grid
+// half-cached.
+async function warmVendor() {
+  const cache = await caches.open(CACHE)
+  const missing = []
+  for (const url of VENDOR) {
+    if (!(await cache.match(url, { ignoreSearch: true }))) missing.push(url)
+  }
+  if (missing.length) await cache.addAll(missing)
+}
+
 // Only an installed client asks for this. Failures are swallowed on purpose:
 // a warm that does not finish leaves the app exactly as capable as a browser
 // tab, which is the status quo rather than a regression.
 self.addEventListener('message', (e) => {
   if (!e.data || e.data.type !== 'warm-vendor') return
-  e.waitUntil(
-    caches
-      .open(CACHE)
-      .then((c) => c.addAll(VENDOR))
-      .catch(() => {})
-  )
+  e.waitUntil(warmVendor().catch(() => {}))
 })
 
 const isImmutable = (url) => url.pathname.includes('/vendor/') || url.pathname.includes('/icons/')
@@ -91,19 +101,36 @@ async function cacheFirst(request) {
 
 async function networkFirst(request) {
   const cache = await caches.open(CACHE)
+  // Looked up before the fetch rather than in the catch, because whether a
+  // usable fallback exists is what decides if it is safe to put a deadline on
+  // the network at all. ignoreSearch because index.html requests
+  // ./styles.css?N and ./app.js?N while the cache holds them unqueried.
+  const cached = await cache.match(request, { ignoreSearch: true })
+
   const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), NETWORK_TIMEOUT)
+  // Race the network only when there is something to fall back to. Anything
+  // same-origin and not precached comes through here on its first request —
+  // og.png, a sponsor logo — and aborting those at 3s would turn a slow load
+  // into a broken image, where before this worker existed they merely arrived
+  // late. With a copy in hand the deadline is worth it; without one it is
+  // strictly worse than waiting.
+  const timer = cached ? setTimeout(() => controller.abort(), NETWORK_TIMEOUT) : null
+
   try {
-    const res = await fetch(request, { signal: controller.signal })
-    clearTimeout(timer)
-    if (res.ok) await cache.put(cacheKey(request), res.clone())
-    return res
+    const res = await fetch(request, cached ? { signal: controller.signal } : undefined)
+    if (timer) clearTimeout(timer)
+    if (res.ok) {
+      await cache.put(cacheKey(request), res.clone())
+      return res
+    }
+    // A 5xx, or a 404 caught mid-deploy, would otherwise be handed to the page
+    // as its own stylesheet or script and break it — while a copy known to
+    // work sits in the cache. With nothing cached there is nothing better to
+    // offer, so the real response goes through and the browser reports it.
+    return cached || res
   } catch (err) {
-    clearTimeout(timer)
-    // ignoreSearch because index.html requests ./styles.css?N and ./app.js?N
-    // while the cache holds them unqueried.
-    const hit = await cache.match(request, { ignoreSearch: true })
-    if (hit) return hit
+    if (timer) clearTimeout(timer)
+    if (cached) return cached
     throw err
   }
 }

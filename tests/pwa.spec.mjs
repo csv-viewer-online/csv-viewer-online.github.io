@@ -1,6 +1,9 @@
 import { test, expect } from '@playwright/test'
 import { ensureFixtures } from './fixtures.mjs'
 
+// Mirrors NETWORK_TIMEOUT in sw.js; tests here need to out-wait it.
+const NETWORK_TIMEOUT_MS = 3000
+
 let paths
 test.beforeAll(async () => { paths = await ensureFixtures() })
 
@@ -359,4 +362,71 @@ test('the "How it works" cue lands on a heading of that name', async ({ page }) 
   // text so the two cannot drift apart again.
   expect(href).toMatch(/^#./)
   await expect(page.locator(href)).toHaveText(label)
+})
+
+test('a failing server does not break the app when a good copy is cached', async ({ page, context }) => {
+  await page.goto('/')
+  await page.evaluate(() => navigator.serviceWorker.ready)
+  await page.reload()
+
+  // A 5xx, or a 404 caught mid-deploy, used to be handed straight to the page
+  // as its own script: app.js fails to load and nothing works, while a copy
+  // known to be good sits in the cache unused.
+  await context.route('**/app.js*', (route) =>
+    route.fulfill({ status: 500, contentType: 'text/javascript', body: '/* deploying */' }))
+  await page.reload()
+  await context.unroute('**/app.js*')
+
+  // If app.js came from cache the app is alive, so opening a file still works.
+  await page.setInputFiles('#input-file', paths['plain.csv'])
+  await expect(page.locator('body')).toHaveClass(/loaded/)
+  await expect(page.locator('#handsontable-container .ht_master tbody tr')).toHaveCount(3)
+})
+
+test('a slow asset with nothing cached is waited for, not aborted', async ({ page, context }) => {
+  await page.goto('/')
+  await page.evaluate(() => navigator.serviceWorker.ready)
+  await page.reload()
+
+  // Same-origin and never precached, so it comes through networkFirst with no
+  // fallback. Arming the 3s abort here would turn a slow load into a failed
+  // one — a broken sponsor logo on exactly the connections least able to
+  // afford a retry.
+  await context.route('**/slow-probe.png', async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, NETWORK_TIMEOUT_MS + 1000))
+    await route.fulfill({ status: 200, contentType: 'image/png', body: 'not-really-a-png' })
+  })
+
+  const ok = await page.evaluate(() => fetch('/slow-probe.png').then((r) => r.ok, () => false))
+  expect(ok, 'a slow uncached asset must still arrive').toBe(true)
+  await context.unroute('**/slow-probe.png')
+})
+
+test('warming again does not refetch what is already cached', async ({ page, context }) => {
+  const grid = []
+  // context, not page: a worker's own fetches are invisible to a page listener.
+  context.on('request', (r) => { if (/handsontable/.test(r.url())) grid.push(r.url()) })
+
+  const warm = () => page.evaluate(async () => {
+    const reg = await navigator.serviceWorker.ready
+    reg.active.postMessage({ type: 'warm-vendor' })
+  })
+
+  await page.goto('/')
+  await warm()
+  await expect.poll(async () =>
+    page.evaluate(async () => {
+      const c = await caches.open('csv-viewer-v1')
+      return !!(await c.match('./vendor/handsontable.full.min.js', { ignoreSearch: true }))
+    }), { timeout: 30_000 }
+  ).toBe(true)
+
+  const afterFirst = grid.length
+  expect(afterFirst, 'the first warm must actually fetch the grid').toBeGreaterThan(0)
+
+  // Asserting an absence, so some wait is unavoidable — this is not covering
+  // for flakiness. addAll used to refetch all three unconditionally.
+  await warm()
+  await page.waitForTimeout(1500)
+  expect(grid.length, 'a second warm must not refetch 1.6 MB').toBe(afterFirst)
 })
