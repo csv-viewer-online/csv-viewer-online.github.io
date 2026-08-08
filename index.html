@@ -143,7 +143,7 @@
         <ul>
           <li><strong>Commas, semicolons, tabs and pipes.</strong> The separator is detected automatically, so European semicolon exports and tab-separated files open without changing a setting.</li>
           <li><strong>Quoted fields.</strong> Values wrapped in quotes can contain commas, escaped quotes and line breaks.</li>
-          <li><strong>UTF-8 text.</strong> Accented characters and non-Latin scripts render as written.</li>
+          <li><strong>UTF-8, UTF-16 and Windows-1252.</strong> The encoding is detected from the bytes, so accented characters survive — including from Excel's default CSV export, which is not UTF-8. A file that is not UTF-8 says which encoding was found, so a wrong guess is visible rather than silent.</li>
           <li><strong>Sorting.</strong> Click a column header to sort by that column.</li>
           <li><strong>Column widths.</strong> Drag the edge of a header to resize it.</li>
           <li><strong>Search.</strong> Filter to matching rows across every column; press <kbd>/</kbd> to jump to the search box.</li>

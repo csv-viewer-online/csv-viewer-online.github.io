@@ -14,7 +14,7 @@ connection at all. Nothing to download from a store, and no account.
 
 | Browser | How |
 | --- | --- |
-| **Chrome, Edge** (desktop) | Click the install icon in the address bar, or pick **Install** from the browser menu |
+| **Chrome, Edge, Brave** (desktop) | Click the install icon in the address bar, or pick **Install** from the browser menu |
 | **Chrome** (Android) | Menu → **Add to Home screen** |
 | **Safari** (iOS, iPadOS) | Share → **Add to Home Screen** |
 | **Safari** (macOS 14+) | **File** → **Add to Dock** |
@@ -27,13 +27,18 @@ on first launch. A browser tab deliberately does not preload them, so opening
 the site in a tab stays as light as it has always been; they are still only
 fetched, and cached, once a file is actually opened.
 
-Installed on desktop Chrome or Edge, it also registers as a handler for
-`.csv`, so you can open one straight from Finder or Explorer. If the OS does
-not offer it, launch the installed app once first — handlers are registered on
-first run.
+Installed on a desktop Chromium browser, it also registers as a handler for
+`.csv`, so you can open one straight from Finder or Explorer. It will not
+become the *default* for CSV files — Numbers and Excel keep that — so use
+**Open With** unless you change the default yourself. If the app is not
+offered at all, launch it once first; handlers are registered on first run.
+
+An OS launch always opens a new window, so double-clicking a file can never
+replace one you have open with unsaved edits.
 
 To uninstall, open the app and use its menu → **Uninstall**, or remove it from
-`chrome://apps`. Uninstalling clears its cached copy of the site.
+`chrome://apps`. Chrome offers to delete the app's stored data at the same
+time; leave that unticked and the cached copy of the site stays behind.
 
 ## What it does
 
@@ -61,14 +66,15 @@ and `.txt` are offered in the picker, and any dropped file is attempted.
 
 ## How it is built
 
-Plain HTML, CSS and JavaScript with **no build step**. The whole site is four
-files plus static assets:
+Plain HTML, CSS and JavaScript with **no build step**. The whole site is five
+hand-written files plus static assets:
 
 ```
-index.html      markup and <head>
-styles.css      all styling
-app.js          parsing, the grid, search, export
-sw.js           service worker: caches the shell, warms vendor/ when installed
+index.html            markup and <head>
+styles.css            all styling
+app.js                parsing, the grid, search, export
+sw.js                 service worker: caches the shell, warms vendor/ when installed
+manifest.webmanifest  install metadata, icons, .csv file handling
 ```
 
 Two libraries do the heavy lifting, vendored into `vendor/` rather than
@@ -106,7 +112,7 @@ drag-and-drop, the clipboard, grid rendering.
 ```sh
 bun install
 bunx playwright install chromium
-bun run test          # 130 tests
+bun run test
 bun run test:headed   # watch them run
 bun run test:ui       # interactive
 ```
