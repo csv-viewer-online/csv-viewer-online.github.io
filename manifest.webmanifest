@@ -14,5 +14,6 @@
   ],
   "file_handlers": [
     { "action": "/", "accept": { "text/csv": [".csv"] } }
-  ]
+  ],
+  "launch_handler": { "client_mode": "navigate-new" }
 }

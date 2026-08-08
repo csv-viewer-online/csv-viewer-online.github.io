@@ -430,3 +430,15 @@ test('warming again does not refetch what is already cached', async ({ page, con
   await page.waitForTimeout(1500)
   expect(grid.length, 'a second warm must not refetch 1.6 MB').toBe(afterFirst)
 })
+
+test('an OS launch opens its own window rather than reusing one', async ({ request }) => {
+  const m = await (await request.get('/manifest.webmanifest')).json()
+
+  // navigate-new is load-bearing, not a default worth tidying away. The launch
+  // consumer hands its file straight to loadFile, and the discard guard is
+  // wired only to the wordmark — so reusing an existing window would replace
+  // whatever the reader had open, unsaved edits and all, without asking.
+  // A fresh window cannot do that. Changing this to focus-existing or
+  // navigate-existing means adding that guard first.
+  expect(m.launch_handler.client_mode).toBe('navigate-new')
+})

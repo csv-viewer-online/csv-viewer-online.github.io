@@ -275,3 +275,16 @@ test.describe('head and static files', () => {
     expect(await res.text()).toContain('<svg')
   })
 })
+
+test('every spec file appears in the README table', async () => {
+  // That table drifted to six rows out of eleven before anyone noticed, and the
+  // test count beside it went stale three separate times. The count is gone;
+  // this keeps the table honest without anyone having to remember.
+  const { readdir, readFile } = await import('node:fs/promises')
+  const here = new URL('.', import.meta.url)
+  const specs = (await readdir(here)).filter((f) => f.endsWith('.spec.mjs')).sort()
+  const readme = await readFile(new URL('../README.md', import.meta.url), 'utf8')
+
+  const missing = specs.filter((f) => !readme.includes('`' + f + '`'))
+  expect(missing, 'these specs have no row in the README Spec table').toEqual([])
+})
