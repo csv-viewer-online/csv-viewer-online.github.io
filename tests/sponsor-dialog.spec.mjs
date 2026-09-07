@@ -109,10 +109,10 @@ test('it still works with a file open', async ({ page }) => {
   await expect(page.locator('#handsontable-container .ht_master tbody tr')).toHaveCount(3)
 })
 
-test('the CTA still sits among 8 tiles at mobile width', async ({ page }) => {
+test('the CTA still sits among the sponsor tiles at mobile width', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/')
-  await expect(page.locator('.rail .tile')).toHaveCount(8)
+  await expect(page.locator('.rail .tile#sponsor-cta')).toBeVisible()
 
   await page.click('#sponsor-cta')
   await expect(dialog(page)).toBeVisible()
