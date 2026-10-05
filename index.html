@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CSV Viewer &amp; Editor Online — view and edit CSV files in your browser</title>
+  <meta name="description" content="Open a CSV file, edit it, sort and search it in your browser. Nothing is uploaded — your file is parsed locally on your own device.">
+  <link rel="canonical" href="https://csv-viewer-online.github.io/">
+  <!-- Search Console ownership proof. Removing this un-verifies the site. -->
+  <meta name="google-site-verification" content="8aw1LwNMMXqelv3hKf9xP8h0Ok7Z02M8rvTzjny7oDw">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#126BCF">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-180.png">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="CSV Viewer &amp; Editor Online">
+  <meta property="og:title" content="CSV Viewer &amp; Editor Online — view and edit a CSV in your browser">
+  <meta property="og:description" content="Open, edit, sort and search CSV files. Nothing is uploaded — your file is parsed on your own device.">
+  <meta property="og:url" content="https://csv-viewer-online.github.io/">
+  <meta property="og:image" content="https://csv-viewer-online.github.io/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="CSV Viewer &amp; Editor Online, shown beside a table of CSV rows.">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "CSV Viewer & Editor Online",
+    "url": "https://csv-viewer-online.github.io/",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Any",
+    "browserRequirements": "Requires JavaScript",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "description": "View, edit, sort and search CSV files in your browser. Files are parsed locally and never uploaded."
+  }
+  </script>
+  <link rel="stylesheet" href="./styles.css?19">
+  <script defer src="https://analytics.limonte.dev/script.js" data-website-id="980b9c4c-d922-4759-91af-dc5d6a129f57"></script>
+</head>
+
+<body>
+  <header class="toolbar">
+    <a class="mark" href="/" aria-label="CSV Viewer and Editor Online — start over">
+      <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+        <rect x="1.2" y="1.2" width="13.6" height="13.6" rx="2"/>
+        <path d="M1.2 5.6h13.6M6 5.6V14.8M10.4 5.6V14.8"/>
+      </svg>
+      <span>CSV Viewer &amp; Editor</span>
+    </a>
+
+    <span class="divider"></span>
+
+    <span class="file-chip">
+      <span class="name" id="file-name">—</span>
+      <span class="count" id="file-count">—</span>
+    </span>
+    <span class="divider"></span>
+
+    <span class="edits" id="edits" hidden>
+      <span class="edits-dot" aria-hidden="true"></span>
+      <span id="edits-count">0 edited cells</span>
+      <button class="edits-revert" id="revert-edits" type="button">Revert all</button>
+    </span>
+
+    <span class="spacer"></span>
+
+    <span class="search">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+        <circle cx="6.8" cy="6.8" r="4.6"/><path d="M10.2 10.2 14 14"/>
+      </svg>
+      <input type="search" id="search-input" placeholder="Search rows" aria-label="Search rows">
+      <kbd>/</kbd>
+    </span>
+
+    <span class="menu">
+      <button class="btn download" id="download-btn" type="button" aria-label="Download" aria-haspopup="true" aria-expanded="false">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M8 1.9v8"/>
+          <path d="M4.7 6.6 8 9.9l3.3-3.3"/>
+          <path d="M2.6 11.6v1.7a.8.8 0 0 0 .8.8h9.2a.8.8 0 0 0 .8-.8v-1.7"/>
+        </svg>
+        <span class="long">Download</span>
+      </button>
+      <span class="menu-pop" id="download-menu" role="menu" hidden>
+        <button type="button" role="menuitem" data-export="csv">Download as CSV</button>
+        <button type="button" role="menuitem" data-export="json">Download as JSON</button>
+        <button type="button" role="menuitem" data-export="copy">Copy to clipboard</button>
+      </span>
+    </span>
+
+    <button class="btn" id="open-btn" type="button">Open<span class="long"> file</span></button>
+  </header>
+
+  <p class="notice" id="notice" role="status" aria-live="polite" hidden>
+    <span id="notice-text"></span>
+    <button class="notice-dismiss" id="notice-dismiss" type="button" aria-label="Dismiss">&times;</button>
+  </p>
+
+  <main class="work">
+    <div class="empty">
+      <div class="hero">
+      <div class="intro">
+        <h1>CSV Viewer &amp; Editor Online</h1>
+        <p class="tagline">Open, edit, sort and search a CSV file. Nothing is uploaded — it is parsed on your own device.</p>
+      </div>
+
+      <div id="drop-zone">
+        <svg class="file" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="12" y1="18" x2="12" y2="12"/>
+          <polyline points="9 15 12 12 15 15"/>
+        </svg>
+        <p class="drop-title">Drop your CSV file here</p>
+        <p class="drop-sub">Also opens .tsv, .tab and .txt.<br>Parsed in your browser — the file is never uploaded.</p>
+        <label class="browse-btn" for="input-file">Browse file</label>
+        <input type="file" id="input-file" accept=".csv,.tsv,.tab,.txt,text/csv,text/tab-separated-values,text/plain">
+      </div>
+
+        <p class="drop-status" id="drop-status" role="status" aria-live="polite"></p>
+        <a class="scroll-cue" href="#how-it-works">How it works</a>
+      </div>
+
+      <article class="content" id="about">
+        <h2>Read and edit a CSV without handing it to anyone</h2>
+        <p>Most online CSV tools ask you to upload your file to a server before you can look at it. A copy of your spreadsheet — customer records, a bank export, whatever it happens to be — then lives on someone else's machine, under their retention policy rather than yours.</p>
+        <p>This page does the work in your browser instead. When you pick a file it is read straight from disk by the tab you already have open, parsed in memory, and drawn on screen. There is no account, nothing to delete afterwards, and no upload request carrying your data. You can check that yourself: open your browser's network panel and watch it while you open a file.</p>
+
+        <h2 id="how-it-works">How it works</h2>
+        <ol>
+          <li><strong>You pick a file.</strong> Drop it on the page, or browse for it. Nothing is sent anywhere at this point — the file is simply handed to the tab.</li>
+          <li><strong>It is read and parsed on your device.</strong> The separator and the character encoding are worked out from the bytes themselves, so semicolon exports from Excel and non-UTF-8 files open without a setting to change.</li>
+          <li><strong>The rows are drawn on screen.</strong> Only the rows in view are rendered, which is why a file with tens of thousands of them still scrolls. Sorting, searching and editing all happen in memory.</li>
+          <li><strong>You download what you see.</strong> Your edits, your sort order and only the rows matching your search are written to a new file. The original is never modified.</li>
+        </ol>
+        <p>Because every step happens in the tab, there is no server to trust and no copy of your data to delete afterwards.</p>
+        <p>You can also <strong>install it</strong>. Chrome and Edge show an install button in the address bar; on iPhone and iPad use Share → Add to Home Screen. Installed, the viewer itself is stored on your device, so it opens and reads files with no connection at all — and on desktop it can open a .csv straight from Finder or Explorer.</p>
+
+        <h2>What it handles</h2>
+        <ul>
+          <li><strong>Commas, semicolons, tabs and pipes.</strong> The separator is detected automatically, so European semicolon exports and tab-separated files open without changing a setting.</li>
+          <li><strong>Quoted fields.</strong> Values wrapped in quotes can contain commas, escaped quotes and line breaks.</li>
+          <li><strong>UTF-8, UTF-16 and Windows-1252.</strong> The encoding is detected from the bytes, so accented characters survive — including from Excel's default CSV export, which is not UTF-8. A file that is not UTF-8 says which encoding was found, so a wrong guess is visible rather than silent.</li>
+          <li><strong>Sorting.</strong> Click a column header to sort by that column.</li>
+          <li><strong>Column widths.</strong> Drag the edge of a header to resize it.</li>
+          <li><strong>Search.</strong> Filter to matching rows across every column; press <kbd>/</kbd> to jump to the search box.</li>
+          <li><strong>Editing.</strong> Type into any cell to correct or change a value before you download it.</li>
+          <li><strong>Download.</strong> Save the rows you are looking at as CSV or JSON, or copy them to the clipboard.</li>
+        </ul>
+
+        <h2>Questions</h2>
+
+        <h3>Is my file uploaded anywhere?</h3>
+        <p>No. It is read and parsed locally by JavaScript running in this tab, and never leaves your device.</p>
+
+        <h3>How many rows can it open?</h3>
+        <p>There is no fixed limit. Rows are only drawn as they scroll into view, so tens of thousands are comfortable. Very large files are bounded by your device's memory rather than by the page.</p>
+
+        <h3>Can I edit the data and save it?</h3>
+        <p>You can type into cells, and <strong>Download</strong> saves what is on screen as a new CSV or JSON file — including your edits, the sort order you chose, and only the rows matching your search. Your original file is never touched; nothing is written back to it, and closing the tab discards anything you have not downloaded.</p>
+
+        <h3>Does it work offline?</h3>
+        <p>Yes, once you install it — see <a href="#how-it-works">How it works</a>. The installed app keeps everything it needs on your device, so it opens and reads files with no connection. In an ordinary browser tab the page itself still has to load first; after that, reading your file needs no network either way.</p>
+
+        <h3>What does it cost?</h3>
+        <p>Nothing — it is free to use. The sponsor tiles on this page are paid placements.</p>
+      </article>
+    </div>
+
+    <div id="handsontable-container"></div>
+
+    <p class="search-empty" id="search-empty">No rows match that search. Clear the search to see all rows.</p>
+  </main>
+
+  <aside class="rail" aria-label="Sponsors">
+    <p class="rail-h">Sponsors</p>
+
+    <button class="tile cta" id="sponsor-cta" type="button" aria-haspopup="dialog">
+      <b>Your ad here</b>
+      <span>~50k visitors monthly<br>$19/month</span>
+    </button>
+
+    <a class="tile" href="https://www.inksonic.com/" target="_blank" rel="noopener">
+      <img src="/images/inksonic.png" alt=""> InkSonic
+    </a>
+
+    <a class="tile" href="https://vsdoll.net/" target="_blank" rel="noopener">
+      <img src="/images/vsdoll.png" alt=""> VSDoll
+    </a>
+
+    <a class="tile" href="https://www.blueplenum.com/" target="_blank" rel="noopener">
+      <img src="/images/blueplenum.jpg" alt=""> BluePlenum
+    </a>
+
+    <a class="tile" href="https://www.zezelife.com/" target="_blank" rel="noopener">
+      <img src="/images/zezelife.png" alt=""> ZezeLife
+    </a>
+
+    <a class="tile" href="https://www.bsdoll.com/" target="_blank" rel="noopener">
+      <img src="/images/bsdoll.jpg" alt=""> BSDoll
+    </a>
+
+    <a class="tile" href="https://www.nakedoll.com/" target="_blank" rel="noopener">
+      <img src="/images/nakedoll.png" alt=""> NakeDoll
+    </a>
+
+    <a class="tile" href="https://www.uloversdoll.com/" target="_blank" rel="noopener">
+      <img src="/images/uloversdoll.png" alt=""> ULoversDoll
+    </a>
+
+    <a class="tile" href="https://www.uloversdoll.de/" target="_blank" rel="noopener">
+      <img src="/images/uloversdoll.png" alt=""> Uloversdoll.de
+    </a>
+
+    <a class="tile" href="https://www.karenlovely.jp/" target="_blank" rel="noopener">
+      <img src="/images/karenlovely.png" alt=""> Karenlovely
+    </a>
+
+    <a class="tile" href="https://www.karendoll.com" target="_blank" rel="noopener">
+      <img src="/images/karendoll.png" alt=""> Karendoll
+    </a>
+
+    <a class="tile" href="https://www.gutdolls.com/" target="_blank" rel="noopener">
+      <img src="/images/gutdolls.png" alt=""> Gutdolls
+    </a>
+
+    <a class="tile" href="https://www.fraudoll.com/" target="_blank" rel="noopener">
+      <img src="/images/fraudoll.png" alt=""> Fraudoll
+    </a>
+
+    <a class="tile" href="https://www.yeloly.com/" target="_blank" rel="noopener">
+      <img src="/images/yeloly.png" alt=""> Yeloly
+    </a>
+
+    <a class="tile" href="https://www.yeloly.de/" target="_blank" rel="noopener">
+      <img src="/images/yeloly.png" alt=""> Yeloly.de
+    </a>
+  </aside>
+
+  <dialog class="confirm-dialog" id="discard-dialog" aria-labelledby="discard-dialog-title">
+    <h2 id="discard-dialog-title">Discard your edits?</h2>
+    <p>Starting over throws away <strong id="discard-count">your edits</strong>. Your file on disk is untouched either way, but anything you changed here has not been saved anywhere.</p>
+    <div class="confirm-actions">
+      <button class="btn quiet" id="discard-cancel" type="button">Keep editing</button>
+      <button class="btn danger" id="discard-confirm" type="button">Discard and start over</button>
+    </div>
+  </dialog>
+
+  <dialog class="sponsor-dialog" id="sponsor-dialog" aria-labelledby="sponsor-dialog-title">
+    <button class="dialog-close" id="sponsor-dialog-close" type="button" aria-label="Close">&times;</button>
+
+    <h2 id="sponsor-dialog-title">Advertise here</h2>
+    <p class="dialog-lede">Your logo and name in the sidebar — visible on every visit, and while someone is working with their file.</p>
+
+    <dl class="stats">
+      <div>
+        <dt>Visitors</dt>
+        <dd>~50,000<span>per month</span></dd>
+      </div>
+      <div>
+        <dt>Google</dt>
+        <dd>#2<span>for “CSV Viewer”</span></dd>
+      </div>
+      <div>
+        <dt>Price</dt>
+        <dd>$19<span>per month</span></dd>
+      </div>
+    </dl>
+
+    <p class="dialog-note">Mostly developers, analysts and people wrangling exports. No tracking, no popups, nothing that gets between a visitor and their file.</p>
+
+    <p class="dialog-label">Get in touch</p>
+    <div class="email-row">
+      <code id="sponsor-email">csv.viewer.online@gmail.com</code>
+      <button class="btn quiet" id="copy-email" type="button">Copy</button>
+    </div>
+    <a class="btn dialog-mail" href="mailto:csv.viewer.online@gmail.com?subject=Advertising on CSV Viewer">Open in mail app</a>
+  </dialog>
+
+  <script>
+    // Registered inline rather than from app.js so it does not wait on the app
+    // to parse, and so the ?N version query can never affect whether the
+    // worker registers.
+    if ('serviceWorker' in navigator) {
+      addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').then(async () => {
+          // Only an installed app pays for the 1.6 MB grid up front. A browser
+          // tab keeps today's page weight and fetches it on first file open.
+          if (!matchMedia('(display-mode: standalone)').matches) return
+          const reg = await navigator.serviceWorker.ready
+          // reg.active rather than .controller: on a first launch the page is
+          // not yet controlled, which is exactly when warming matters most.
+          if (reg.active) reg.active.postMessage({ type: 'warm-vendor' })
+        }).catch(() => {})
+      })
+    }
+  </script>
+  <script src="./app.js?19"></script>
+</body>
+</html>

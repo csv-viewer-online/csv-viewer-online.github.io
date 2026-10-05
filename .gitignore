@@ -1,0 +1,7 @@
+node_modules/
+test-results/
+playwright-report/
+blob-report/
+.DS_Store
+*.swp
+CLAUDE.md

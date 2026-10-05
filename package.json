@@ -1,0 +1,16 @@
+{
+  "name": "csv-viewer-online",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Tooling only — the site itself is plain HTML/CSS/JS with no build step.",
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "serve": "bun tests/serve.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.0"
+  }
+}

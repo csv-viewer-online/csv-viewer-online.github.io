@@ -1,0 +1,1047 @@
+/* No webfonts: the product's promise is speed, so the type budget is spent
+   on nothing and the chrome uses the OS UI face. */
+:root {
+  --canvas: #FFFFFF;
+  --chrome: #F4F6FA;
+  --border: #D8DCE3;
+  --ink: #16181D;
+  --muted: #6B7280;
+  --prose: #3F4653;
+  --action: #126BCF;
+  --action-soft: #EAF2FD;
+  --ui: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --data: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+  --rail: 184px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--rail);
+  /* Row 2 holds the parse notice and collapses to nothing while it is hidden,
+     so the grid keeps a definite height either way. */
+  grid-template-rows: 49px auto minmax(0, 1fr);
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--ui);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--action);
+  outline-offset: 1px;
+}
+
+/* Toolbar — present both before and after a file is open, so the page is
+   never left without an identity. */
+/* Every row is placed explicitly. The notice is display:none while hidden,
+   which removes it as a grid item — with auto placement that let .work and
+   .rail fall into the notice's auto-sized row and shrink to their content
+   instead of filling the viewport. */
+.toolbar {
+  grid-row: 1;
+  grid-column: 1 / -1;
+  /* Above .work, so the download menu is not covered by the grid's own
+     stacked overlays — they reach z-index ~200 and would swallow the clicks. */
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 12px 0 14px;
+  background: var(--chrome);
+  border-bottom: 1px solid var(--border);
+}
+
+.mark {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  font-size: 13.5px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.mark:hover span {
+  text-decoration: underline;
+}
+
+.mark svg {
+  color: var(--action);
+}
+
+/* Dividers only separate things that exist once a file is open. */
+.divider {
+  display: none;
+  width: 1px;
+  height: 22px;
+  background: var(--border);
+  flex: 0 0 auto;
+}
+
+body.loaded .divider {
+  display: block;
+}
+
+.file-chip {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+.file-chip .name {
+  font-family: var(--data);
+  font-size: 12.5px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-chip .count {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 2px 7px;
+  background: var(--canvas);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  font-family: var(--data);
+  font-size: 11px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+body.loaded .file-chip {
+  display: flex;
+}
+
+/* Unsaved-edit indicator. Uses the same amber as the cell corner flags, so
+   the count and the marks read as one thing. */
+.edits {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  padding: 3px 4px 3px 9px;
+  background: #FFF8E6;
+  border: 1px solid #EBD9A6;
+  border-radius: 999px;
+  font-size: 12px;
+  color: #6B4E10;
+  white-space: nowrap;
+}
+
+.edits[hidden] {
+  display: none;
+}
+
+.edits-dot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  background: #C7861F;
+  border-radius: 50%;
+}
+
+.edits-revert {
+  padding: 3px 9px;
+  background: var(--canvas);
+  border: 1px solid #EBD9A6;
+  border-radius: 999px;
+  font-family: var(--ui);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #6B4E10;
+  cursor: pointer;
+}
+
+.edits-revert:hover {
+  background: #FDF1D4;
+  border-color: #C7861F;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.search {
+  display: none;
+  position: relative;
+  flex: 0 1 260px;
+  min-width: 0;
+}
+
+body.loaded .search {
+  display: block;
+}
+
+.search svg {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.search input {
+  width: 100%;
+  height: 30px;
+  padding: 0 30px 0 28px;
+  background: var(--canvas);
+  color: var(--ink);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  font-family: var(--ui);
+  font-size: 13px;
+}
+
+.search input::placeholder {
+  color: var(--muted);
+}
+
+.search kbd {
+  position: absolute;
+  right: 7px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 1px 5px;
+  background: var(--chrome);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  font-family: var(--data);
+  font-size: 10.5px;
+  color: var(--muted);
+}
+
+.search input:not(:placeholder-shown) + kbd,
+.search input:focus + kbd {
+  display: none;
+}
+
+.btn {
+  flex: 0 0 auto;
+  height: 30px;
+  padding: 0 14px;
+  background: var(--action);
+  color: #fff;
+  border: 0;
+  border-radius: 5px;
+  font-family: var(--ui);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: #0F5AB8;
+}
+
+/* Green rather than the brand blue, so Download reads as its own action next
+   to Open file instead of competing with it. #0B7A3E clears 4.5:1 against
+   white text; the lighter greens that looked nicer did not. */
+.btn.download {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: #0B7A3E;
+}
+
+.btn.download:hover {
+  background: #096632;
+}
+
+.btn.download svg {
+  flex: 0 0 auto;
+}
+
+.btn.quiet {
+  background: var(--canvas);
+  color: var(--ink);
+  border: 1px solid var(--border);
+}
+
+.btn.quiet:hover {
+  background: var(--action-soft);
+  border-color: var(--action);
+  color: var(--action);
+}
+
+/* Download menu — only useful once a file is open */
+.menu {
+  display: none;
+  position: relative;
+  flex: 0 0 auto;
+}
+
+body.loaded .menu {
+  display: block;
+}
+
+.menu-pop {
+  position: absolute;
+  top: calc(100% + 5px);
+  right: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  min-width: 186px;
+  padding: 4px;
+  background: var(--canvas);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  box-shadow: 0 12px 28px -12px rgba(22, 24, 29, 0.28);
+}
+
+.menu-pop[hidden] {
+  display: none;
+}
+
+.menu-pop button {
+  padding: 8px 10px;
+  background: none;
+  border: 0;
+  border-radius: 5px;
+  font-family: var(--ui);
+  font-size: 13px;
+  text-align: left;
+  color: var(--ink);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.menu-pop button:hover {
+  background: var(--action-soft);
+  color: var(--action);
+}
+
+/* Parse and input feedback. Sits above the work area so it is visible in both
+   the empty state and with a file open. */
+.notice {
+  grid-row: 2;
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  padding: 9px 12px 9px 14px;
+  background: #FFF8E6;
+  border-bottom: 1px solid #EBD9A6;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #6B4E10;
+}
+
+.notice[hidden] {
+  display: none;
+}
+
+.notice.is-error {
+  background: #FEF2F2;
+  border-bottom-color: #F3C6C6;
+  color: #8C2B22;
+}
+
+.notice.is-ok {
+  background: var(--action-soft);
+  border-bottom-color: #BBD5F5;
+  color: #14508F;
+}
+
+#notice-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.notice-dismiss {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 4px;
+  font-family: var(--ui);
+  font-size: 17px;
+  line-height: 1;
+  color: inherit;
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+.notice-dismiss:hover {
+  background: rgba(0, 0, 0, 0.06);
+  opacity: 1;
+}
+
+/* Work area */
+.work {
+  grid-row: 3;
+  grid-column: 1;
+  position: relative;
+  /* Contain the grid's internal z-indexes so they cannot compete with the
+     toolbar above it */
+  isolation: isolate;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Scroll container: the hero fills the first viewport, the prose sits
+   below it. The whole thing is removed once a file is open. */
+.empty {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.hero {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 24px;
+  background:
+    linear-gradient(var(--chrome) 1px, transparent 1px) 0 0 / 100% 33px,
+    linear-gradient(90deg, var(--chrome) 1px, transparent 1px) 0 0 / 132px 100%;
+}
+
+/* Shown while the grid is being fetched on first open, and if that fails. */
+.drop-status {
+  display: none;
+  margin: 16px 0 0;
+  max-width: 340px;
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: center;
+  color: var(--muted);
+}
+
+body.loading .drop-status,
+body.load-error .drop-status {
+  display: block;
+}
+
+body.load-error .drop-status {
+  color: #B42318;
+}
+
+body.loading #drop-zone {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+body.loading .scroll-cue,
+body.load-error .scroll-cue {
+  visibility: hidden;
+}
+
+.scroll-cue {
+  margin-top: 30px;
+  font-size: 12.5px;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.scroll-cue::after {
+  content: ' ↓';
+}
+
+.scroll-cue:hover {
+  color: var(--action);
+}
+
+/* Prose */
+.content {
+  max-width: 660px;
+  margin: 0 auto;
+  padding: 10px 24px 76px;
+}
+
+.content h2 {
+  margin: 36px 0 10px;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.content h3 {
+  margin: 22px 0 5px;
+  font-size: 14.5px;
+  font-weight: 650;
+}
+
+.content p,
+.content li {
+  margin: 0 0 10px;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--prose);
+}
+
+/* ol as well as ul: the How it works steps are sequential, so they are
+   numbered rather than bulleted, and need the same indent and rhythm. */
+.content ul,
+.content ol {
+  margin: 12px 0 0;
+  padding-left: 20px;
+}
+
+.content li {
+  margin-bottom: 7px;
+}
+
+.content kbd {
+  padding: 1px 5px;
+  background: var(--chrome);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  font-family: var(--data);
+  font-size: 11.5px;
+}
+
+/* Empty-state heading. Lives inside .empty, so it is removed as soon as a
+   file is open and never competes with the grid. */
+.intro {
+  margin-bottom: 22px;
+  max-width: 460px;
+  text-align: center;
+}
+
+.intro h1 {
+  margin: 0 0 7px;
+  font-size: 27px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.tagline {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+#drop-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 400px;
+  padding: 42px 28px;
+  background: var(--canvas);
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  box-shadow: 0 18px 40px -30px rgba(22, 24, 29, 0.4);
+  transition: border-color 0.16s, background 0.16s;
+}
+
+#drop-zone svg.file {
+  color: var(--muted);
+  opacity: 0.7;
+  transition: color 0.16s, opacity 0.16s, transform 0.16s;
+}
+
+.drop-title {
+  margin: 2px 0 0;
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.drop-sub {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.browse-btn {
+  margin-top: 4px;
+  padding: 9px 20px;
+  background: var(--action);
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.browse-btn:hover {
+  background: #0F5AB8;
+}
+
+body.drag-over #drop-zone {
+  border-color: var(--action);
+  background: var(--action-soft);
+}
+
+body.drag-over #drop-zone svg.file {
+  color: var(--action);
+  opacity: 1;
+  transform: translateY(-3px);
+}
+
+#input-file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  border: 0;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+#handsontable-container {
+  display: none;
+  height: 100%;
+}
+
+body.loaded .empty {
+  display: none;
+}
+
+body.loaded #handsontable-container {
+  display: block;
+}
+
+/* The state class on <body> is deliberately different from the element's
+   class: sharing one would make `.x { display: none }` hide the page grid. */
+.search-empty {
+  display: none;
+  padding: 28px 20px;
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+
+body.no-match #handsontable-container {
+  display: none;
+}
+
+body.no-match .search-empty {
+  display: block;
+}
+
+/* Grid */
+.handsontable {
+  font-family: var(--data);
+  font-size: 12.5px;
+  color: var(--ink);
+}
+
+.handsontable th {
+  background: var(--chrome);
+  color: var(--muted);
+  font-family: var(--ui);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.handsontable td {
+  border-color: #E7EAF0;
+}
+
+.handsontable .wtBorder.current,
+.handsontable .wtBorder.area {
+  background-color: var(--action) !important;
+}
+
+.handsontable td.area {
+  background-color: var(--action-soft);
+  background-image: none;
+}
+
+/* A cell whose value differs from the file as it was opened. Marked with a
+   corner flag rather than a background tint, so it stays visible while the
+   cell is selected and cannot be mistaken for a value the file contained. */
+.handsontable td.is-edited {
+  position: relative;
+}
+
+.handsontable td.is-edited::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  border: 5px solid transparent;
+  border-top-color: #C7861F;
+  border-right-color: #C7861F;
+  pointer-events: none;
+}
+
+/* Sponsor rail — one uniform frame per tile, so a loud logo can't set the
+   tone of the whole page. */
+.rail {
+  grid-row: 3;
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  padding: 10px;
+  background: var(--chrome);
+  border-left: 1px solid var(--border);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+}
+
+.rail-h {
+  margin: 0 0 2px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #9AA3B2;
+}
+
+.tile {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex: 0 0 auto;
+  padding: 7px;
+  background: var(--canvas);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: none;
+  transition: border-color 0.14s, box-shadow 0.14s;
+}
+
+.tile:hover {
+  border-color: var(--action);
+  box-shadow: 0 0 0 3px var(--action-soft);
+}
+
+.tile img {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  object-fit: contain;
+}
+
+/* A <button>, not a link — it opens the enquiry dialog, so it needs the
+   element defaults reset back to how the sibling tiles look. */
+.tile.cta {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  padding: 10px 11px;
+  background: var(--action-soft);
+  border: 1px dashed var(--action);
+  border-radius: 7px;
+  font-family: var(--ui);
+  text-align: left;
+  color: var(--action);
+  cursor: pointer;
+}
+
+.tile.cta b {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.tile.cta span {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.45;
+  color: #3D6EA8;
+}
+
+/* Sponsor enquiry dialog. Native <dialog> so focus trapping, Escape and the
+   backdrop come from the browser rather than hand-rolled JS. */
+.sponsor-dialog,
+.confirm-dialog {
+  width: min(430px, calc(100vw - 32px));
+  padding: 26px 26px 24px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 32px 70px -30px rgba(22, 24, 29, 0.45);
+  color: var(--ink);
+  font-family: var(--ui);
+}
+
+.sponsor-dialog::backdrop,
+.confirm-dialog::backdrop {
+  background: rgba(16, 22, 33, 0.42);
+}
+
+.dialog-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 6px;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.dialog-close:hover {
+  background: var(--chrome);
+  color: var(--ink);
+}
+
+.sponsor-dialog h2,
+.confirm-dialog h2 {
+  margin: 0 0 6px;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.dialog-lede {
+  margin: 0 0 20px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--prose);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 0 0 18px;
+}
+
+.stats > div {
+  padding: 11px 10px;
+  background: var(--chrome);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  text-align: center;
+}
+
+.stats dt {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.stats dd {
+  margin: 4px 0 0;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--action);
+}
+
+.stats dd span {
+  display: block;
+  margin-top: 2px;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--muted);
+}
+
+.dialog-note {
+  margin: 0 0 20px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.dialog-label {
+  margin: 0 0 7px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.email-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.email-row code {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 8px 10px;
+  background: var(--chrome);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: var(--data);
+  font-size: 12px;
+  overflow: auto;
+  white-space: nowrap;
+}
+
+.dialog-mail {
+  display: block;
+  text-align: center;
+  line-height: 30px;
+  text-decoration: none;
+}
+
+@media (max-width: 820px) {
+  :root {
+    --rail: 0px;
+  }
+
+  body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 49px auto minmax(0, 1fr) auto;
+  }
+
+  .toolbar {
+    flex-wrap: nowrap;
+    gap: 10px;
+    padding: 0 10px;
+  }
+
+  /* Keep the product name — it is the only identity on the page. */
+  .mark {
+    font-size: 13px;
+  }
+
+  /* No room for dividers or the wordmark text next to a filename. */
+  body.loaded .mark span,
+  body.loaded .divider {
+    display: none;
+  }
+
+  /* Keep the dot and the Revert button; the count is what has to give */
+  .edits #edits-count {
+    display: none;
+  }
+
+  .edits {
+    padding-left: 7px;
+  }
+
+  .search {
+    flex: 1 1 auto;
+  }
+
+  .intro {
+    margin-bottom: 18px;
+  }
+
+  .intro h1 {
+    font-size: 21px;
+  }
+
+  .tagline {
+    font-size: 13px;
+  }
+
+  .content {
+    padding: 6px 18px 60px;
+  }
+
+  .content h2 {
+    font-size: 17px;
+    margin-top: 30px;
+  }
+
+  .btn span.long {
+    display: none;
+  }
+
+  .rail {
+    /* Single column here, so the rail moves below the work area */
+    grid-row: 4;
+    grid-column: 1;
+    flex-direction: row;
+    align-items: center;
+    padding: 10px;
+    border-left: 0;
+    border-top: 1px solid var(--border);
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .rail-h {
+    display: none;
+  }
+
+  .tile {
+    white-space: nowrap;
+  }
+
+  .tile.cta {
+    width: auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .tile.cta span {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}
+
+/* Discard confirmation */
+.confirm-dialog p {
+  margin: 0 0 20px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--prose);
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.confirm-actions .btn {
+  height: 34px;
+}
+
+.btn.danger {
+  background: #B42318;
+}
+
+.btn.danger:hover {
+  background: #97200F;
+}
